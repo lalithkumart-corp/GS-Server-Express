@@ -4,9 +4,10 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('gs-server-express:server');
-var http = require('http');
+import app from '../app';
+import _debug from 'debug';
+let debug = _debug('gs-server-express:server');
+import http from 'http';
 
 /**
  * Get port from environment and store in Express.
