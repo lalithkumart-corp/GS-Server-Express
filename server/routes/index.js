@@ -1,10 +1,10 @@
 import express from 'express';
-import { appConfig } from '../config/config';
+import { appConfig, envConfig } from '../config';
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  console.log(appConfig.test);
+  console.log(envConfig.test);
   console.log(appConfig.test2);
   res.json({ title: 'Express' });
 });
