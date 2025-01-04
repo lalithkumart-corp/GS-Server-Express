@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-import app from '../app';
+import app from '../app.js';
 import _debug from 'debug';
 let debug = _debug('gs-server-express:server');
 import http from 'http';

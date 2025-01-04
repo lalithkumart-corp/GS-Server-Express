@@ -11,7 +11,6 @@ const pool = mysql.createPool({
   database: dbconfig.DB_NAME,
   connectTimeout: dbconfig.DB_CONNECTION_TIMEOUT,
   waitForConnections: true,
-  acquireTimeout: dbconfig.DB_ACQUIRE_TIMEOUT,
   debug: false
 });
 
@@ -32,16 +31,20 @@ pool.on('release', function (connection) {
 });
 
 const db = {
-    query: (sql) => {
-        return new Promise((resolve, reject) => {
-            pool.query(sql, (err, results) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve(results);
-            });
-        })
-    }
+  query: (sql, queryParams) => {
+    return new Promise((resolve, reject) => {
+      const cb = (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(results);
+      };
+      if (queryParams)
+        pool.query(sql, queryParams, cb);
+      else
+        pool.query(sql, cb);
+    })
+  }
 }
 
 

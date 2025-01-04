@@ -1,5 +1,5 @@
 import express from 'express';
-import { appConfig, envConfig } from '../config';
+import { appConfig, envConfig } from '../config/index.js';
 var router = express.Router();
 
 /* GET home page. */
