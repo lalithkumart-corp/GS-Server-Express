@@ -5,7 +5,7 @@ export const generateToken = (data) => {
     return jwt.sign(data, appConfig.tokenSecretKey);
 };
 
-export const verifyToken = async (token) => {
+export const verifyJwtToken = async (token) => {
     return new Promise((resolve, reject) => {
         jwt.verify(token, appConfig.tokenSecretKey, (err, decoded) => {
             if (err) {

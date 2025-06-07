@@ -4,7 +4,7 @@ export const dbconfig = {
     DB_HOST: 'localhost',
     DB_PORT: 3306,
     DB_USER: 'root',
-    DB_PWD: 'root',
-    DB_NAME: 'dbname',
+    DB_PWD: 'admin123',
+    DB_NAME: 'gsprod-express',
     DB_CONNECTION_TIMEOUT: 10000
 }

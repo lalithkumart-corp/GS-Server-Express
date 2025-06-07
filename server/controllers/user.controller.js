@@ -13,5 +13,5 @@ export const signup = async (req, res, next) => {
 }
 
 const SQL = {
-    USER_INSERT: `INSERT INTO user (user_name, user_email, password, password_plain, phone) VALUES (?,?,?,?,?)`
+    USER_INSERT: `INSERT INTO user (user_name, email, password, password_original, mobile) VALUES (?,?,?,?,?)`
 }

@@ -20,5 +20,5 @@ export const loginUser = async (req, res, next) => {
 };
 
 const SQL = {
-    FIND_USER: 'SELECT * FROM user where user_email=?'
+    FIND_USER: 'SELECT * FROM user where email=?'
 }
