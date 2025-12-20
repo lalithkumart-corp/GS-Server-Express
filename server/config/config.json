@@ -1,0 +1,35 @@
+{
+    "test2": "from app config",
+    "saltRounds": 10,
+    "tokenSecretKey": "AaM@K0!Y",
+    "restApiRoot": "/api",
+    "domain": "localhost",
+    "externalDomain": "localhost",
+    "host": "0.0.0.0",
+    "protocol": "http",
+    "externalProtocol": "http",
+    "port": 3003,
+    "externalPort": 3003,
+    "remoting": {
+        "context": false,
+        "rest": {
+            "handleErrors": false,
+            "normalizeHttpPath": false,
+            "xml": false
+        },
+        "json": {
+            "strict": false,
+            "limit": "100kb"
+        },
+        "urlencoded": {
+            "extended": true,
+            "limit": "100kb"
+        },
+        "cors": false
+    },
+    "pledgebookTableName": "pledgebook",
+    "pledgebookClosedBillListTableName": "pledgebook_closed_bills",
+    "clientUploadsPath": "/../../client/uploads/",
+    "clientCsvFolderPath": "../../client/csvfiles/file.csv",
+    "consoleLogFolder": "/../../server/logs/"
+}

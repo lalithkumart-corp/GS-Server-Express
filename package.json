@@ -4,22 +4,28 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "start": "npm-run-all clean transpile server",
+    "start": "npm-run-all clean transpile copy-config server",
     "server": "node ./dist-server/bin/www",
     "transpile": "babel ./server --out-dir dist-server",
+    "copy-config": "cpx \"server/config/*.json\" dist-server/config",
     "clean": "rimraf dist-server",
-    "build": "npm-run-all clean transpile"
+    "build": "npm-run-all clean transpile copy-config"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
+    "csv-writer": "^1.6.0",
+    "dateformat": "^5.0.3",
     "dotenv": "^16.4.7",
     "express": "~4.16.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "~1.9.1",
     "mysql2": "^3.12.0",
     "npm-run-all": "^4.1.5",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "shorthash": "^0.0.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "babel": {
     "presets": [
@@ -32,7 +38,12 @@
     "@babel/cli": "^7.26.4",
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "cpx": "^1.5.0",
     "nodemon": "^3.1.9",
     "rimraf": "^6.0.1"
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

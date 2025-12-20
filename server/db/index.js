@@ -31,18 +31,30 @@ pool.on('release', function (connection) {
 });
 
 const db = {
-  query: (sql, queryParams) => {
+  query: (sql, ...args) => {
     return new Promise((resolve, reject) => {
-      const cb = (err, results) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(results);
-      };
-      if (queryParams)
-        pool.query(sql, queryParams, cb);
-      else
-        pool.query(sql, cb);
+
+      // If last argument is a function, treat as callback style
+      const cb = typeof args[args.length - 1] === 'function' ? args.pop() : null;
+      const queryParams = args.length > 0 ? args[0] : undefined;
+
+      if (cb) {
+        if (queryParams)
+          pool.query(sql, queryParams, cb);
+        else
+          pool.query(sql, cb);
+      } else {
+        // return new Promise((resolve, reject) => {
+          const callback = (err, results) => {
+            if (err) return reject(err);
+            return resolve(results);
+          };
+          if (queryParams)
+            pool.query(sql, queryParams, callback);
+          else
+            pool.query(sql, callback);
+        // });
+      }
     })
   }
 }
