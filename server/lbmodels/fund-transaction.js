@@ -17,6 +17,1518 @@ export class FundTransactionCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
+
+    cashInApi(apiParams, cb) {
+        this._cashInApi(apiParams).then((resp) => {
+            if(resp)
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            else
+                cb(null, {STATUS: 'ERROR', RESP: resp});
+        }).catch((e)=>{
+            cb({STATUS: 'EXCEPTION', ERR: e}, null);
+        });
+    }
+
+    _cashInApi(apiParams) {
+        return new Promise( async (resolve, reject) => {
+            let userId = await  utils.getStoreOwnerUserId(apiParams.accessToken);
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let categId = await this._getOrCreateCategoryId(userId, apiParams.category);
+            let sql = SQL.CASH_TRANSACTION_IN.replace(/REPLACE_USERID/g, userId);
+            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.amount, 0, categId, apiParams.remarks, apiParams.paymentMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+            db.query(sql, queryValues, (err, res) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve(true);
+                }
+            });
+        });
+    }
+
+    cashOutApi(apiParams, cb) {
+        this._cashOutApi(apiParams).then((resp) => {
+            if(resp)
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            else
+                cb(null, {STATUS: 'ERROR', RESP: resp});
+        }).catch((e)=>{
+            cb({STATUS: 'EXCEPTION', ERR: e}, null);
+        });
+    }
+
+    _cashOutApi(apiParams) {
+        return new Promise( async (resolve, reject) => {
+            let userId =await  utils.getStoreOwnerUserId(apiParams.accessToken);
+
+            let destAccDetail = apiParams.destinationAccountDetail;
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let categId = await this._getOrCreateCategoryId(userId, apiParams.category);
+            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 0, apiParams.amount, categId, apiParams.remarks,
+                apiParams.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+
+            let sql = SQL.CASH_TRANSACTION_OUT.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, queryValues, (err, res) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve(true);
+                }
+            });
+        });
+    }
+
+    fetchTransactionsApi(accessToken, params, cb) {
+        this._fetchTransactionsApi(accessToken, params).then(
+            (resp) => {
+                if(resp)
+                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
+                else
+                    cb(null, {STATUS: 'ERROR', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    fetchTransactionsApiV2(accessToken, params, cb) {
+        this._fetchTransactionsApiV2(accessToken, params).then(
+            (resp) => {
+                if(resp)
+                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
+                else
+                    cb(null, {STATUS: 'ERROR', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    fetchTransactionsOverviewApi(accessToken, params, cb) {
+        this._fetchTransactionsOverviewApi(accessToken, params).then(
+            (resp) => {
+                if(resp)
+                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
+                else
+                    cb(null, {STATUS: 'ERROR', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    fetchConsolTransactionsApi(accessToken, params, cb) {
+        this._fetchConsolTransactionsApi(accessToken, params).then(
+            (resp) => {
+                if(resp)
+                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
+                else
+                    cb(null, {STATUS: 'ERROR', RESP: resp});
+            },
+            (error) => {
+                cb(null, {STATUS: 'ERROR', ERR_RESP: error});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _appendFilters(sql, params, identifier) {
+        let filterPart = '';
+        let orderClause = '';
+        let limitOffsetClause = '';
+        let filters = [];
+        switch(identifier) {
+            case 'FETCH_TRANSACTION_LIST':
+                filters.push('deleted = 0');
+                if(params._userId)
+                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
+                if(params.accounts) {
+                    params.accounts = params.accounts.map((anAccount) => `'${anAccount}'`);
+                    let joinedAccounts = params.accounts.join(', ');
+                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
+                }
+                if(params.category && params.category.length > 0) {
+                    params.category = params.category.map((aCategory) => `'${aCategory}'`);
+                    let joinedCategories = params.category.join(', ');
+                    filters.push(`category in (${joinedCategories})`);
+                }
+                if(params.startDate && params.endDate)
+                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
+                
+                if(params.orderCol && params.orderBy) {
+                    if(params.orderCol == 'TRN_DATE')
+                        orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
+                    else if(params.orderCol == 'CREATED_DATE')
+                        orderClause = ` ORDER BY created_date ${params.orderBy}`;
+                    else if(params.orderCol == 'MODIFIED_DATE')
+                        orderClause = ` ORDER BY modified_date ${params.orderBy}`;
+                } else {
+                    orderClause = ` ORDER BY transaction_date ASC`;
+                }
+                if(params.offsetEnd != undefined || params.offsetStart != undefined) {
+                    let limit = params.offsetEnd - params.offsetStart;
+                    limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
+                }
+                break;
+            case 'FETCH_TRANSACTION_LIST_V2':
+            case 'FETCH_TRANSACTION_LIST_TOT_COUNT':
+                filters.push('deleted = 0');
+                if(params._userId)
+                    filters.push(`fund_trns_tmp_REPLACE_USERID.user_id=${params._userId}`);
+                if(params.accounts) {
+                    let accountVal = params.accounts.map((anAccount) => `'${anAccount}'`);
+                    let joinedAccounts = accountVal.join(', ');
+                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
+                }
+                if(params.category && params.category.length > 0) {
+                    let categ = params.category.map((aCategory) => `'${aCategory}'`);
+                    let joinedCategories = categ.join(', ');
+                    filters.push(`category in (${joinedCategories})`);
+                }
+                if(params.startDate && params.endDate)
+                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
+
+                if(params.customerVal)
+                    filters.push(`customer_REPLACE_USERID.Name like '${params.customerVal}%'`);
+
+                if(params.remarks)
+                    filters.push(`fund_trns_tmp_REPLACE_USERID.remarks like '%${params.remarks}%'`);
+
+                if(params.tagId)
+                    filters.push(`fund_trns_tmp_REPLACE_USERID.tag_indicator = ${params.tagId}`);
+
+                if(identifier !== 'FETCH_TRANSACTION_LIST_TOT_COUNT') {
+                    if(params.orderCol && params.orderBy) {
+                        if(params.orderCol == 'TRN_DATE')
+                            orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
+                        else if(params.orderCol == 'CREATED_DATE')
+                            orderClause = ` ORDER BY created_date ${params.orderBy}`;
+                        else if(params.orderCol == 'MODIFIED_DATE')
+                            orderClause = ` ORDER BY modified_date ${params.orderBy}`;
+                    } else {
+                        orderClause = ` ORDER BY transaction_date DESC`;
+                    }
+                    if(params.offsetEnd != undefined || params.offsetStart != undefined) {
+                        let limit = params.offsetEnd - params.offsetStart;
+                        limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
+                    }
+                }
+                break;
+            case 'FETCH_TRANSACTION_LIST_GROUPIFIED': 
+                filters.push('deleted = 0');
+                if(params._userId)
+                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
+                if(params.accounts) {
+                    let accountVal = params.accounts.map((anAccount) => `'${anAccount}'`);
+                    let joinedAccounts = accountVal.join(', ');
+                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
+                }
+                if(params.category && params.category.length > 0) {
+                    let categ = params.category.map((aCategory) => `'${aCategory}'`);
+                    let joinedCategories = categ.join(', ');
+                    filters.push(`category in (${joinedCategories})`);
+                }
+                if(params.startDate && params.endDate) {
+                    let sd = params.startDate.replace('T',' ').replace('Z', '');
+                    let ed = params.endDate.replace('T',' ').replace('Z', '');
+                    filters.push(`(transaction_date BETWEEN '${sd}' AND '${ed}')`);
+                }
+
+                if(params.customerVal)
+                    filters.push(`customer_REPLACE_USERID.Name like '${params.customerVal}%'`);
+
+                if(params.remarks)
+                    filters.push(`fund_transactions_REPLACE_USERID.remarks like '%${params.remarks}%'`);
+                if(params.orderCol && params.orderBy) {
+                    if(params.orderCol == 'TRN_DATE')
+                        orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
+                    else if(params.orderCol == 'CREATED_DATE')
+                        orderClause = ` ORDER BY created_date ${params.orderBy}`;
+                    else if(params.orderCol == 'MODIFIED_DATE')
+                        orderClause = ` ORDER BY modified_date ${params.orderBy}`;
+                } else {
+                    orderClause = ` ORDER BY transaction_date DESC`;
+                }
+                break;
+
+            case 'FETCH_CONSOL_LIST_FOR_BAL_SHEET':
+                filters.push('deleted = 0');
+                if(params.startDate && params.endDate) {
+                    let sd = params.startDate.replace('T',' ').replace('Z', '');
+                    let ed = params.endDate.replace('T',' ').replace('Z', '');
+                    filters.push(`(transaction_date BETWEEN '${sd}' AND '${ed}')`);
+                }
+                break;
+
+            case 'TRANSACTION_LIST_COLLECTIONS':
+                filters.push('deleted = 0');
+                if(params._userId)
+                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
+                if(params.startDate && params.endDate)
+                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
+                break;
+            case 'FETCH_TRANSACTION_LIST_BY_BILL':
+                if(params._userId)
+                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
+                // if(params.loan_uid) {
+                //     if(params.closed_uid)
+                //         filters.push(`(fund_transactions_REPLACE_USERID.gs_uid=${params.loan_uid} OR fund_transactions_REPLACE_USERID.gs_uid=${params.closed_uid})`);
+                //     else
+                //         filters.push(`fund_transactions_REPLACE_USERID.gs_uid=${params.loan_uid}`);
+                // }
+                if(params.excludeInternal)
+                    filters.push(`fund_transactions_REPLACE_USERID.is_internal=0`);
+                filters.push(`fund_transactions_REPLACE_USERID.gs_uid IN ('${params.uids.join("', '")}')`);
+                break;
+        }
+
+        if(filters.length > 0)
+            filterPart = ` WHERE ${filters.join(' AND ')}`;
+
+        sql = sql.replace('WHERE_CLAUSE', filterPart);
+
+        sql = sql.replace('ORDER_CLAUSE', orderClause);
+
+        sql = sql.replace('LIMIT_OFFSET_CLAUSE', limitOffsetClause);
+
+        // TABLE NAME REPLACEMENT
+        // if(identifier == 'FETCH_TRANSACTION_LIST') sql = sql.replace(/FUND_TRNS_TBL_NAME/g, 'fund_transactions_REPLACE_USERID');
+        // else if(identifier == 'FETCH_TRANSACTION_LIST_V2') sql = sql.replace(/FUND_TRNS_TBL_NAME/g, 'fund_trns_tmp_REPLACE_USERID');
+
+        sql = sql.replace(/REPLACE_USERID/g, params._userId);
+        return sql;
+    }
+
+
+    _fetchTransactionsApi(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            params._userId =await  utils.getStoreOwnerUserId(accessToken);
+
+            let promiseTasks = [];
+
+            promiseTasks.push(this.fetchPaginatedList(params));
+            
+            if(params.fetchFundOverview) {
+                promiseTasks.push(this.fetchFilterSuggestions(params));
+                promiseTasks.push(this.fetchOpeningBalanceFromDB(params._userId, params.startDate));
+                promiseTasks.push(this.fetchClosingBalanceFromDB(params._userId, params.endDate));
+                promiseTasks.push(this.fetchCashInOutTotalsFromDB(params));
+            }
+            //  else {
+            //     let limit = params.offsetEnd - params.offsetStart;
+            //     let offset = params.offsetStart;
+            //     promiseTasks.push(this.fetchPageWiseOpeningBalanceFromDB(params._userId, params.startDate, params.endDate, limit, offset));
+            // }
+
+            Promise.all(promiseTasks).then(
+                (results) => {
+                    let obj = this.constructTransactionListApiResponse(results, params);
+                    resolve(obj);
+                },
+                (error) => {
+                    reject(error);
+                }
+            )
+            .catch(
+                (exception) => {
+                    reject(exception);
+                }
+            );
+        });
+    }
+
+    _fetchTransactionsApiV2(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            params._userId = await utils.getStoreOwnerUserId(accessToken);
+            let promiseTasks = [];
+            promiseTasks.push(this.fetchRecordsWithHelpOfProcedure(params));
+
+            if(params.fetchFilterCollections) 
+                promiseTasks.push(this.fetchFilterSuggestions(params));
+
+            // if(params.consolidateCategories && params.consolidateCategories.length > 0)
+            //     res = this.consolidate(res, params.consolidateCategories);
+
+            Promise.all(promiseTasks).then(
+                (results) => {
+                    let obj = {
+                        results: results[0].rows,
+                        count: results[0].count
+                    }
+                    if(params.fetchFilterCollections)
+                        obj.collections = this._constructCollections(results[1]);
+                    
+                    resolve(obj);
+                },
+                (error) => {
+                    reject(error);
+                }
+            )
+            .catch(
+                (exception) => {
+                    reject(exception);
+                }
+            );
+        });
+    };
+
+    _constructCollections(collRes) {
+            let collections = {
+            count: collRes.length,
+            fundAccounts: [],
+            categories: [],
+            // totalCashIn: 0,
+            // totalCashOut: 0,
+        };
+        try {
+            let categorySet = new Set();
+            if(collections.count > 0) {
+                _.each(collRes, (aColl, index) => {
+                    if(aColl.fundAccountId) {
+                        let existsArr = collections.fundAccounts.filter((anObj, index) => {
+                            if(anObj.id == aColl.fundAccountId)
+                                return true;
+                        });
+                        if(existsArr.length == 0)
+                            collections.fundAccounts.push({id: aColl.fundAccountId, name: aColl.name});
+                    }
+                    if(aColl.category && collections.categories.indexOf(aColl.category) == -1)
+                        categorySet.add(aColl.category);  //collections.categories.push(aColl.category);
+                    // if(aColl.cash_in)
+                    //     collections.totalCashIn += aColl.cash_in;
+                    // if(aColl.cash_out)
+                    //     collections.totalCashOut += aColl.cash_out;
+                });
+                collections.categories = Array.from(categorySet);
+            }
+        } catch(e) {
+            console.error(e);
+        }
+        return collections;
+    }
+
+    _fetchTransactionsOverviewApi(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            params._userId = await utils.getStoreOwnerUserId(accessToken);
+            
+            let promiseTasks = [];
+            promiseTasks.push(this.fetchOpeningBalanceFromDB(params._userId, params.startDate));
+            promiseTasks.push(this.fetchClosingBalanceFromDB(params._userId, params.endDate));
+            promiseTasks.push(this.fetchCashInOutTotalsFromDB(params));
+
+            Promise.all(promiseTasks).then(
+                (results) => {
+                    let obj = {};
+                        obj.openingBalance = results[0] || 0;
+                        obj.closingBalance = results[1].closing_balance || 0;
+                        obj.totalCashIn = results[2].total_cash_in || 0;
+                        obj.totalCashOut = results[2].total_cash_out || 0;
+                    resolve(obj);
+                },
+                (error) => {
+                    reject(error);
+                }
+            )
+            .catch(
+                (exception) => {
+                    reject(exception);
+                }
+            );
+        });
+    }
+
+    fetchCategorySuggestionsApi(accessToken, mode, cb) {
+        this._fetchCategorySuggestionsApi(accessToken, mode).then(
+            (resp) => {
+                if(resp)
+                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
+                else
+                    cb(null, {STATUS: 'ERROR', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _fetchCategorySuggestionsApi(accessToken, mode) {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(accessToken);
+            let amountCondition;
+            if(mode && mode.length > 0) {
+                amountCondition = 'cash_in > 0';
+                if(mode == 'cash-out')
+                    amountCondition = 'cash_out > 0';
+            }
+            let sql = SQL.CATEGORY_LIST;
+            sql += ` WHERE fund_transactions_REPLACE_USERID.user_id=${userId}`;
+            if(amountCondition)
+                sql += ` AND ${amountCondition}`;
+
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    let arr = [];
+                    _.each(res, (anObj, index) => {
+                        if(anObj.category && arr.indexOf(anObj.category) == -1)
+                            arr.push(anObj.category);
+                    });
+                    return resolve(arr);
+                }
+            });
+        });
+    }
+
+    _fetchConsolTransactionsApi(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let userId = await utils.getStoreOwnerUserId(accessToken);
+                let res;
+                if(params.groupTerms && params.groupTerms.indexOf('COLSOLIDATE_ALL') != -1) {
+                    res = await this.getListForBalanceSheet(params, userId);
+                } else {
+                    await this.truncateTempTable(userId);
+                    await this.cloneToTempTable(params, userId);
+                    await this.addGroupIds(params, userId);
+                    res = await this.getListByGroups(params, userId);
+                }
+                return resolve({results: res});
+            } catch(e) {
+                console.log(e);
+                return reject(e);
+            }
+        });
+    }
+
+    truncateTempTable(userId) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRUNCATE_TRNS_TEMP_TBL;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    cloneToTempTable(params, userId) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.CLONE_FUND_TRNS_TO_TEMP_TBL;
+            sql = this._appendFilters(sql, {...params, _userId: userId}, 'FETCH_TRANSACTION_LIST_GROUPIFIED');
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    addGroupIds(params, userId) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.ADD_GROUP_IDS;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [params.groupTerms], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    getListByGroups(params, userId) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRANSACTION_LIST_WITH_GROUPIFIED;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+
+            let limit = params.offsetEnd - params.offsetStart;
+            let limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
+
+            sql = sql.replace('LIMIT_OFFSET_CLAUSE', limitOffsetClause);
+            
+            db.query(sql, [params.groupTerms], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    getListForBalanceSheet(params, userId) {
+        return new Promise((resolve, reject) => {
+            try {
+                let sql = SQL.CONSOLIDATED_LIST_FOR_BALANCE_SHEET;
+                sql = this._appendFilters(sql, {...params, _userId: userId}, 'FETCH_CONSOL_LIST_FOR_BAL_SHEET');
+                db.query(sql, (err, res) => {
+                    if(err) {
+                        return reject(err);
+                    } else {
+                        return resolve(res);
+                    }
+                });
+            } catch(e) {
+                console.log(e);
+            }
+        });
+    }
+
+    add(params, moduleIdentifier) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                switch(moduleIdentifier) {
+                    case 'pledgebook':
+                        await this.addGirviEntry(params);
+                        break;
+                    case 'redeem':
+                        await this.addRedeemEntry(params);
+                        break;
+                    case 'udhaar':
+                        await this.addUdhaarEntry(params);
+                        break;
+                    case 'jwl_sale':
+                        await this.addJwlSaleEntry(params);
+                        break;
+                    case 'jwl_sale_return':
+                        await this.addJwlSaleReturnEntry(params);
+                        break;
+                }
+                return resolve(true);
+            } catch(e) {
+                console.log(e);
+                return resolve(true); // this is backend job, so allways returning true.
+            }
+        });
+    }
+
+    addGirviEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            let parsedArg = params.parsedArg;
+            let mode = null;
+            let fromAcc = null;
+            let toAcc = null;
+            let accountNo = null;
+            let upiId = null;
+            let ifscCode = null;
+            if(parsedArg.paymentDetails) {
+                let pd = parsedArg.paymentDetails;
+                mode = pd.mode;
+                if(pd.mode == 'cash') {
+                    fromAcc = pd.cash.fromAccountId;
+                } else if(pd.mode == 'cheque') {
+                    fromAcc = pd.cheque.fromAccountId;
+                } else if(pd.mode == 'online') {
+                    fromAcc = pd.online.fromAccountId;
+                    toAcc = pd.online.toAccount.toAccountId;
+                    accountNo = pd.online.toAccount.accNo;
+                    upiId = pd.online.toAccount.upiId;
+                    ifscCode = pd.online.toAccount.ifscCode;
+                }
+            }
+            let categId = await this._getOrCreateCategoryId(parsedArg._userId, 'Girvi');
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let interestAndOtherCharges = parseFloat(parsedArg.interestValue) + parseFloat(parsedArg.otherCharges);
+            let qv = [parsedArg._userId, parsedArg.customerId, 
+                fromAcc, parsedArg.uniqueIdentifier, 
+                parsedArg.date, interestAndOtherCharges, 
+                parsedArg.amount, categId, 
+                parsedArg.billNoWithSeries, mode, 
+                accountNo, ifscCode,
+                currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+
+            let sql = SQL.INTERNAL_GIRVI_TRANSACTION;
+            sql = sql.replace(/REPLACE_USERID/g, parsedArg._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    addRedeemEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                for(let i=0; i<params.data.length; i++) {
+                    let datum = params.data[i];
+                    // let qv = [params._userId, 1, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, 'Redeem', datum.billNo];
+
+                    let mode = null;
+                    let toAcc = null;
+                    if(datum.paymentDetails) {
+                        let pd = datum.paymentDetails;
+                        mode = pd.mode;
+                        toAcc = pd[mode].toAccountId;
+                    }
+                    let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+                    let categId = await this._getOrCreateCategoryId(params._userId, 'Redeem');
+                    let qv = [params._userId, datum.customerId, toAcc, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, categId, datum.billNo, mode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+                    
+                    await this._addRedeemEntry(qv);
+                }
+                return resolve(true);
+            } catch(e) {
+                return reject(e);
+            }
+        });
+    }
+
+    _addRedeemEntry(qv) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.INTERNAL_REDEEM_TRANSACTION;
+            sql = sql.replace(/REPLACE_USERID/g, qv[0]);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    addUdhaarEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            let destAccDetail = params.destinationAccountDetail;
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let interestAndOtherCharges = parseFloat(params.interestVal);
+            let categId = await this._getOrCreateCategoryId(params._userId, 'Udhaar');
+            let qv = [params._userId, params.customerId, params.accountId, params._uniqId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, categId, params._billNo,
+            params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+
+            let sql = SQL.INTERNAL_UDHAAR_TRANSACTION;
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    addJwlSaleEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let categId = await this._getOrCreateCategoryId(params.userId, 'Jwl Sale');
+            let qv = [params.userId, params.customerId, params.accountId, params.gsUid, params.transactionDate, params.cashIn, 
+                0, categId, params.remarks, params.cashInMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+            
+            let sql = SQL.INTERNAL_JWL_SALE_TRANSACTION;
+            sql = sql.replace(/REPLACE_USERID/g, params.userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    addJwlSaleReturnEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let categId = await this._getOrCreateCategoryId(params.userId, 'Jwl Sale Return');
+            let qv = [params.userId, params.customerId, params.accountId, params.gsUid, params.transactionDate, 0, 
+                params.cashOut, categId, params.remarks, params.cashInMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+            
+            let sql = SQL.INTERNAL_JWL_SALE_TRANSACTION;
+            sql = sql.replace(/REPLACE_USERID/g, params.userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    update(params, moduleIdentifier) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                switch(moduleIdentifier) {
+                    case 'pledgebook':
+                        await this.updateGirviEntry(params);
+                        break;
+                    case 'redeem':
+                        await this.updateRedeemEntry(params);
+                        break;
+                    case 'udhaar':
+                        await this.updateUdhaarEntry(params);
+                        break;
+                }
+                return resolve(true);
+            } catch(e) {
+                console.log(e);
+                return resolve(true); // this is backend job, so allways returning true.
+            }
+        });
+    }
+
+    updateGirviEntry(params) {
+        return new Promise((resolve, reject) => {
+            let parsedArg = params.parsedArg;
+            let mode = null;
+            let fromAcc = null;
+            let toAcc = null;
+            let accountNo = null;
+            let upiId = null;
+            let ifscCode = null;
+            if(parsedArg.paymentDetails) {
+                let pd = parsedArg.paymentDetails;
+                mode = pd.mode;
+                if(pd.mode == 'cash') {
+                    fromAcc = pd.cash.fromAccountId;
+                } else if(pd.mode == 'cheque') {
+                    fromAcc = pd.cheque.fromAccountId;
+                } else if(pd.mode == 'online') {
+                    fromAcc = pd.online.fromAccountId;
+                    toAcc = pd.online.toAccount.toAccountId;
+                    accountNo = pd.online.toAccount.accNo;
+                    upiId = pd.online.toAccount.upiId;
+                    ifscCode = pd.online.toAccount.ifscCode;
+                }
+            };
+
+            let interestAndOtherCharges = parseFloat(parsedArg.interestValue) + parseFloat(parsedArg.otherCharges);
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let qv = [parsedArg.customerId, fromAcc, parsedArg.date, interestAndOtherCharges, parsedArg.amount, parsedArg.billNoWithSeries, mode, accountNo, ifscCode, currentTImeInUTCTimezone, parsedArg.uniqueIdentifier, parsedArg._userId];
+
+            let sql = SQL.INTERNAL_GIRVI_TRANSACTION_UPDATE;
+            sql = sql.replace(/REPLACE_USERID/g, parsedArg._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    updateRedeemEntry(params) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                for(let i=0; i<params.data.length; i++) {
+                    let datum = params.data[i];
+                    // let qv = [params._userId, 1, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, 'Redeem', datum.billNo];
+
+                    let mode = null;
+                    let toAcc = null;
+                    if(datum.paymentDetails) {
+                        let pd = datum.paymentDetails;
+                        mode = pd.mode;
+                        toAcc = pd[mode].toAccountId;
+                    }
+                    let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+                    let qv = [ datum.customerId, toAcc, datum.closedDate, datum.paidAmount, datum.billNo, mode, currentTImeInUTCTimezone, datum.redeemUID, params._userId];
+                    await this._updateRedeemEntry(qv, params);
+                }
+                return resolve(true);
+            } catch(e) {
+                return reject(e);
+            }
+        });
+    }
+
+    _updateRedeemEntry(qv, options) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.INTERNAL_REDEEM_TRANSACTION_UPDATE;
+            sql = sql.replace(/REPLACE_USERID/g, options._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    updateUdhaarEntry(params) {
+        return new Promise((resolve, reject) => {
+            let destAccDetail = params.destinationAccountDetail;
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let interestAndOtherCharges = parseFloat(params.interestVal);
+            let qv = [params.customerId, params.accountId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, params._billNo,
+            params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, params.udhaarUid, params._userId];
+
+            let sql = SQL.INTERNAL_UDHAAR_TRANSACTION_UPDATE;
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+
+    removeEntry(params, moduleIdentifier) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                switch(moduleIdentifier) {
+                    case 'redeem':
+                        await this.markRedeemEntryAsDeleted(params);
+                        break;
+                    case 'jwl_sale':
+                        await this.markJwlSaleEntryAsDeleted(params);
+                        break;
+                }
+                return resolve(true);
+            } catch(e) {
+                console.log(e);
+                return resolve(true); // this is backend job, so allways returning true.
+            }
+        });
+    }
+
+    markRedeemEntryAsDeleted(params) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                for(let i=0; i<params.data.length; i++) {
+                    let datum = params.data[i];
+                    let params2 = {_userId: params._userId, closedBillReference: datum.closedBillReference};
+                    await this._markRedeemEntryAsDeleted(params2);
+                }
+                return resolve(true);
+            } catch(e) {
+                return reject(e);
+            }
+        });
+    }
+
+    _markRedeemEntryAsDeleted(params) {
+        return new Promise( async (resolve, reject) => {
+            let qv = [params._userId, params.closedBillReference];
+            let sql = SQL.MARK_AS_DELETED;
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    markJwlSaleEntryAsDeleted(params) {
+        return new Promise( async (resolve, reject) => {
+            let qv = [params.userId, params.gsUid];
+            let sql = SQL.MARK_AS_DELETED;
+            sql = sql.replace(/REPLACE_USERID/g, params.userId);
+            db.query(sql, qv, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    getOpeningBalanceApi(accessToken, dateVal, cb) {
+        this._getOpeningBalanceApi(accessToken, dateVal).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _getOpeningBalanceApi(accessToken, dateVal) {
+        return new Promise( async (resolve, reject) => {
+            try {
+                let userId = await utils.getStoreOwnerUserId(accessToken);
+                let openingBal = await this.fetchOpeningBalanceFromDB(userId, dateVal);
+                return resolve(openingBal);
+            } catch(e) {
+                return reject(e);
+            }
+        });
+    }
+
+    fetchOpeningBalanceFromDB(userId, dateVal) {
+        return new Promise( async (resolve, reject) => {
+            let sql = SQL.OPENING_BALANCE;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [userId, dateVal], (err, res) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    if(res && res.length >0)
+                        resolve(res[0].opening_balance);
+                    else
+                        resolve(0);
+                }
+            });
+        });
+    }
+
+    fetchClosingBalanceFromDB(userId, dateVal) {
+        return new Promise( async (resolve, reject) => {
+            let sql = SQL.CLOSING_BALANCE;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [userId, dateVal], (err, res) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    if(res && res.length >0)
+                        resolve({
+                            closing_balance: res[0].closing_balance
+                        });
+                    else
+                        resolve(0);
+                }
+            });
+        });
+    }
+
+    fetchCashInOutTotalsFromDB(params) {
+        return new Promise( async (resolve, reject) => {
+            let sql = SQL.CASH_IN_OUT_TOTALS;
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, [params._userId, params.startDate, params.endDate], (err, res) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    if(res && res.length >0)
+                        resolve({
+                            total_cash_in: res[0].total_cash_in,
+                            total_cash_out: res[0].total_cash_out
+                        });
+                    else
+                        resolve(0);
+                }
+            });
+        });
+    }
+
+
+    deleteTransactionsApi(params, cb) {
+        this._deleteTransactionsApi(params).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _deleteTransactionsApi(params) {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(params.accessToken);
+            let sql = SQL.DELETE_TRANSACTIONS;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [params.transactionIds, userId], (err, res) => {
+                if(err) {
+                    console.log(err);
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            })
+        });
+    }
+
+    addCashInForBill(params, cb) {
+        this._addCashInForBill(params).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _addCashInForBill(params) {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(params.accessToken);
+            let mode = null;
+            let toAcc = null;
+            if(params.paymentDetails) {
+                let pd = params.paymentDetails;
+                mode = pd.mode;
+                toAcc = pd[mode].toAccountId;
+            }
+            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
+            let categId = await this._getOrCreateCategoryId(userId, params.category);
+
+            let queryValues = [userId, params.customerId, toAcc, params.uniqueIdentifier, dateformat(params.dateVal, 'yyyy-mm-dd HH:MM:ss', true),
+                 params.paymentDetails.value, 0, categId, params.remarks, mode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+            
+            let sql = SQL.ADD_CASH_FOR_BILL;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+
+            db.query(sql, queryValues, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    fetchTransactionsByBillIdApi(accessToken, uids, cb) {
+        this._fetchTransactionsByBillIdApi(accessToken, uids).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _fetchTransactionsByBillIdApi(accessToken, uids) {
+        return new Promise(async (resolve, reject) => {
+            if(uids.length == 0)
+                return reject('Bill ID is not passed.');
+            let params = {uids: uids};
+            params._userId = await utils.getStoreOwnerUserId(accessToken);
+            let res = await this._fetchTransactionByBillFromDB(params);
+            return resolve(res);
+        });
+    }
+
+    _fetchTransactionByBillFromDB(params) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRANSACTION_LIST;
+            sql = this._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_BY_BILL');
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    updateCashInDataApi(params, cb) {
+        this._updateCashInDataApi(params).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _updateCashInDataApi(params) {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(params.accessToken);
+            let categId = await this._getOrCreateCategoryId(userId, params.category);
+            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), params.amount, categId, params.remarks, params.paymentMode, params.transactionId, userId];
+            let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_IN;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, queryValues, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    updateCashOutDataApi(params, cb) {
+        this._updateCashOutDataApi(params).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    _updateCashOutDataApi(params) {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(params.accessToken);
+            let destAccDetail = params.destinationAccountDetail;
+            let categId = await this._getOrCreateCategoryId(userId, params.category);
+            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 
+                params.amount, categId, params.remarks, 
+                params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, params.transactionId, userId];
+            let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_OUT;
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, queryValues, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
+    fetchPaginatedList(params) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRANSACTION_LIST;
+            sql = this._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST');
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    fetchFilterSuggestions(params) {
+        return new Promise((resolve, reject) => {
+            let totalSql = SQL.TRANSACTION_LIST_COLLECTIONS;
+            totalSql = this._appendFilters(totalSql, params, 'TRANSACTION_LIST_COLLECTIONS');
+            totalSql = totalSql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(totalSql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    // _.each()
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    constructTransactionListApiResponse(results, reqParams) {
+        let resp = {
+            results: results[0]
+        };
+        if(reqParams.fetchFundOverview) {
+            resp.collections = this._constructCollections(results[1]);
+            resp.openingBalance = results[2] || 0;
+            resp.closingBalance = results[3].closing_balance || 0;
+            resp.totalCashIn = results[4].total_cash_in || 0;
+            resp.totalCashOut = results[4].total_cash_out || 0;
+        }
+        return resp;
+    }
+
+    checkTempTableLoclStatus() {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TEMP_TABLE_LOCK_STATUS;
+            sql = sql.replace(/WHERE_CLAUSE/g, `WHERE table_name="fund_trns_tmp_REPLACE_USERID"`);
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) return reject(err);
+                else return resolve(res[0].is_locked);
+            });
+        });
+    }
+
+    setLockStatus(status) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.SET_TEMP_TABLE_LOCK_STATUS;
+            sql = sql.replace(/WHERE_CLAUSE/g, `WHERE table_name="fund_trns_tmp_REPLACE_USERID"`);
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, [status], (err, res) => {
+                if(err) console.log(err);
+                return resolve(true);
+            });
+        });
+    }
+
+    invokeStoredProcedure(params) {
+        return new Promise((resolve, reject) => {
+            let stDate = params.startDate.replace(/Z/, '').replace(/T/, ' ');
+            let endDate = params.endDate.replace(/Z/, '').replace(/T/, ' ');
+            let sql = `CALL fund_trns_procedure_REPLACE_USERID('${stDate}', '${endDate}', ${params._userId})`;
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(true);
+                }
+            });        
+        });
+    };
+
+    // addGroupIds(params) {
+    //     return new Promise((resolve, reject) => {
+    //         let sql = SQL.ADD_GROUP_IDS;
+    //         sql = sql.replace(/REPLACE_USERID/g, params._userId);
+    // db.query(sql, [params.groupTerms], (err, res) => {
+    //             if(err) {
+    //                 return reject(err);
+    //             } else {
+    //                 return resolve(true);
+    //             }
+    //         });
+    //     });
+    // }
+
+    fetchRecordsFromTempTable(params) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRANSACTION_LIST_V2;
+            sql = this._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_V2');
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    fetchTotCountFromTempTable(params) {
+        return new Promise((resolve, reject) => {
+            let sql = SQL.TRANSACTION_LIST_TOT_COUNT;
+            sql = this._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_TOT_COUNT');
+            sql = sql.replace(/REPLACE_USERID/g, params._userId);
+            db.query(sql, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res[0].count);
+                }
+            });
+        });
+    }
+
+    fetchRecordsWithHelpOfProcedure(params) {
+        return new Promise(async (resolve, reject) => {
+
+            let isLocked = 0;// await this.checkTempTableLoclStatus();
+            if(isLocked) {
+                params._retryAttemptForProcedureCall = params._retryAttemptForProcedureCall || 0;
+                params._retryAttemptForProcedureCall++;
+                if(params._retryAttemptForProcedureCall < 10) {
+                    setTimeout(() => {
+                        return this.fetchRecordsWithHelpOfProcedure(params);
+                    }, 1000);
+                } else {
+                    // await this.setLockStatus(0);
+                    return this.fetchRecordsWithHelpOfProcedure(params);
+                }
+            } else {
+                // await this.setLockStatus(1);
+                await this.invokeStoredProcedure(params);
+                let res = await this.fetchRecordsWithTotCountFromTempTbl(params);
+                // this.setLockStatus(0);
+                return resolve(res);
+            } 
+        });
+    }
+
+    fetchRecordsWithTotCountFromTempTbl(params) {
+        return new Promise((resolve, reject) => {
+            let promiseTasks = [];
+            promiseTasks.push(this.fetchRecordsFromTempTable(params));
+            promiseTasks.push(this.fetchTotCountFromTempTable(params));
+            Promise.all(promiseTasks).then(
+                (results) => {
+                    let obj = {
+                        rows: results[0],
+                        count: results[1]
+                    }
+                    resolve(obj);
+                },
+                (error) => {
+                    reject(error);
+                }
+            )
+            .catch(
+                (exception) => {
+                    reject(exception);
+                }
+            );
+        });
+    }
+
+    /*this.getUdhaarListApi = (params, cb) => {
+        this._getUdhaarListApi(params).then(
+            (resp) => {
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            }
+        ).catch(
+            (e)=> {
+                cb({STATUS: 'EXCEPTION', ERR: e}, null);
+            }
+        );
+    }
+
+    this._getUdhaarListApi = (params) => {
+        return new Promise(async (resolve, reject) => {
+            let userId = await utils.getStoreOwnerUserId(params.accessToken);
+            
+            let promise1 = new Promise((resolve, reject) => {
+                db.query()
+            });
+        });
+    }*/
+
+    addTag(apiParams) {
+        return new Promise(async (resolve, reject) => {
+            let sql = SQL.ADD_TAG;
+            sql = sql.replace(/REPLACE_USERID/g, apiParams._userId);
+            db.query(sql, [apiParams.tagNumber, apiParams.ids], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve('Tagged Successfully!');
+                }
+            });
+        });
+    }
+
+    removeTag(apiParams) {
+        return new Promise(async (resolve, reject) => {
+            let sql = SQL.REMOVE_TAG;
+            sql = sql.replace(/REPLACE_USERID/g, apiParams._userId);
+            db.query(sql, [apiParams.ids], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve('Removed Tags Successfully!');
+                }
+            });
+        });
+    }
+
+    async transactionsExportAPI(accessToken, params, res, cb) {
+        try {
+            params._userId = await utils.getStoreOwnerUserId(accessToken);
+            let {rows} = await this.fetchRecordsWithHelpOfProcedure(params);
+            rows = this.parseRecordsObtainedFromDB(rows);
+            let fileLocation = utils.getCsvStorePath();
+            let status = await this._writeCSVfile(rows, fileLocation);
+            res.download(fileLocation, 'Fund Transactions.csv');
+        } catch(e) {
+            res.send({STATUS: 'error', ERROR: e});
+        }
+    }
+
+    parseRecordsObtainedFromDB(rows) {
+        try {
+            return rows.map(row => {
+                row.transaction_date = utils.convertDatabaseDateTimetoDateStr(row.transaction_date)
+                return row;
+            });
+        } catch(e) {
+            console.log(e);
+            return rows;
+        }
+    }
+
+    _writeCSVfile(jsonObj, fileLocation) {
+        return new Promise((resolve, reject) => {
+            const csvWriter = createCsvWriter({
+                path: fileLocation,
+                header: [
+                    {id: 'transaction_date', title: 'Date'},
+                    {id: 'fund_house_name', title: 'Account'},
+                    {id: 'CustomerName', title: 'Customer'},
+                    {id: 'category', title: 'Category'},
+                    {id: 'remarks', title: 'Remarks'},
+                    {id: 'cash_in', title: 'Cash In'},
+                    {id: 'cash_out', title: 'Cash Out'},
+                    {id: 'afterBal', title: 'Balance'}
+                ]
+            });
+            csvWriter.writeRecords(jsonObj)
+                .then(
+                    () => {
+                        resolve(true);
+                        console.log('...Done');
+                    },
+                    (err) => {
+                        console.log('ERROR occured.....');
+                        console.error(err);
+                        reject(err);
+                    }
+                )
+                .catch(
+                    (e) => {
+                        console.log('Exception occured.....');
+                        console.error(e);
+                        reject(e);
+                    }
+                )
+        });
+    }
+
+    async _getOrCreateCategoryId(userId, categoryText) {
+        let res = await this._getCategId(userId, categoryText);
+        let categId = null;
+        if(res.length == 0) {
+            let ins = await this._insertNewCateg(userId, categoryText);
+            categId = ins.insertId;
+        } else {
+            categId = res[0].id;
+        }
+        return categId;
+    }
+
+    _getCategId(userId, categoryText) {
+        return new Promise((resolve, reject) => {
+            db.query(SQL.GET_CATEG_ID, [userId, categoryText], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    _insertNewCateg(userId, categoryText) {
+        return new Promise((resolve, reject) => {
+            db.query(SQL.INSERT_NEW_CATEGORY, [userId, categoryText], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
 }
 
 export const FundTransaction = new FundTransactionCls();
@@ -421,1234 +1933,7 @@ export const FundTransaction = new FundTransactionCls();
         description: 'For getting the udhaar list by date.',
     });*/
 
-    FundTransaction.cashInApi = (apiParams, cb) => {
-        FundTransaction._cashInApi(apiParams).then((resp) => {
-            if(resp)
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            else
-                cb(null, {STATUS: 'ERROR', RESP: resp});
-        }).catch((e)=>{
-            cb({STATUS: 'EXCEPTION', ERR: e}, null);
-        });
-    }
-
-    FundTransaction._cashInApi = (apiParams) => {
-        return new Promise( async (resolve, reject) => {
-            let userId = await  utils.getStoreOwnerUserId(apiParams.accessToken);
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let categId = await FundTransaction._getOrCreateCategoryId(userId, apiParams.category);
-            let sql = SQL.CASH_TRANSACTION_IN.replace(/REPLACE_USERID/g, userId);
-            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.amount, 0, categId, apiParams.remarks, apiParams.paymentMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-            db.query(sql, queryValues, (err, res) => {
-                if(err){
-                    reject(err);
-                } else {
-                    resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.cashOutApi = (apiParams, cb) => {
-        FundTransaction._cashOutApi(apiParams).then((resp) => {
-            if(resp)
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            else
-                cb(null, {STATUS: 'ERROR', RESP: resp});
-        }).catch((e)=>{
-            cb({STATUS: 'EXCEPTION', ERR: e}, null);
-        });
-    }
-
-    FundTransaction._cashOutApi = (apiParams) => {
-        return new Promise( async (resolve, reject) => {
-            let userId =await  utils.getStoreOwnerUserId(apiParams.accessToken);
-
-            let destAccDetail = apiParams.destinationAccountDetail;
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let categId = await FundTransaction._getOrCreateCategoryId(userId, apiParams.category);
-            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 0, apiParams.amount, categId, apiParams.remarks,
-                apiParams.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-
-            let sql = SQL.CASH_TRANSACTION_OUT.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, queryValues, (err, res) => {
-                if(err){
-                    reject(err);
-                } else {
-                    resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchTransactionsApi = (accessToken, params, cb) => {
-        FundTransaction._fetchTransactionsApi(accessToken, params).then(
-            (resp) => {
-                if(resp)
-                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
-                else
-                    cb(null, {STATUS: 'ERROR', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction.fetchTransactionsApiV2 = (accessToken, params, cb) => {
-        FundTransaction._fetchTransactionsApiV2(accessToken, params).then(
-            (resp) => {
-                if(resp)
-                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
-                else
-                    cb(null, {STATUS: 'ERROR', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction.fetchTransactionsOverviewApi = (accessToken, params, cb) => {
-        FundTransaction._fetchTransactionsOverviewApi(accessToken, params).then(
-            (resp) => {
-                if(resp)
-                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
-                else
-                    cb(null, {STATUS: 'ERROR', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction.fetchConsolTransactionsApi = (accessToken, params, cb) => {
-        FundTransaction._fetchConsolTransactionsApi(accessToken, params).then(
-            (resp) => {
-                if(resp)
-                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
-                else
-                    cb(null, {STATUS: 'ERROR', RESP: resp});
-            },
-            (error) => {
-                cb(null, {STATUS: 'ERROR', ERR_RESP: error});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._appendFilters = (sql, params, identifier) => {
-        let filterPart = '';
-        let orderClause = '';
-        let limitOffsetClause = '';
-        let filters = [];
-        switch(identifier) {
-            case 'FETCH_TRANSACTION_LIST':
-                filters.push('deleted = 0');
-                if(params._userId)
-                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
-                if(params.accounts) {
-                    params.accounts = params.accounts.map((anAccount) => `'${anAccount}'`);
-                    let joinedAccounts = params.accounts.join(', ');
-                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
-                }
-                if(params.category && params.category.length > 0) {
-                    params.category = params.category.map((aCategory) => `'${aCategory}'`);
-                    let joinedCategories = params.category.join(', ');
-                    filters.push(`category in (${joinedCategories})`);
-                }
-                if(params.startDate && params.endDate)
-                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
-                
-                if(params.orderCol && params.orderBy) {
-                    if(params.orderCol == 'TRN_DATE')
-                        orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
-                    else if(params.orderCol == 'CREATED_DATE')
-                        orderClause = ` ORDER BY created_date ${params.orderBy}`;
-                    else if(params.orderCol == 'MODIFIED_DATE')
-                        orderClause = ` ORDER BY modified_date ${params.orderBy}`;
-                } else {
-                    orderClause = ` ORDER BY transaction_date ASC`;
-                }
-                if(params.offsetEnd != undefined || params.offsetStart != undefined) {
-                    let limit = params.offsetEnd - params.offsetStart;
-                    limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
-                }
-                break;
-            case 'FETCH_TRANSACTION_LIST_V2':
-            case 'FETCH_TRANSACTION_LIST_TOT_COUNT':
-                filters.push('deleted = 0');
-                if(params._userId)
-                    filters.push(`fund_trns_tmp_REPLACE_USERID.user_id=${params._userId}`);
-                if(params.accounts) {
-                    let accountVal = params.accounts.map((anAccount) => `'${anAccount}'`);
-                    let joinedAccounts = accountVal.join(', ');
-                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
-                }
-                if(params.category && params.category.length > 0) {
-                    let categ = params.category.map((aCategory) => `'${aCategory}'`);
-                    let joinedCategories = categ.join(', ');
-                    filters.push(`category in (${joinedCategories})`);
-                }
-                if(params.startDate && params.endDate)
-                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
-
-                if(params.customerVal)
-                    filters.push(`customer_REPLACE_USERID.Name like '${params.customerVal}%'`);
-
-                if(params.remarks)
-                    filters.push(`fund_trns_tmp_REPLACE_USERID.remarks like '%${params.remarks}%'`);
-
-                if(params.tagId)
-                    filters.push(`fund_trns_tmp_REPLACE_USERID.tag_indicator = ${params.tagId}`);
-
-                if(identifier !== 'FETCH_TRANSACTION_LIST_TOT_COUNT') {
-                    if(params.orderCol && params.orderBy) {
-                        if(params.orderCol == 'TRN_DATE')
-                            orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
-                        else if(params.orderCol == 'CREATED_DATE')
-                            orderClause = ` ORDER BY created_date ${params.orderBy}`;
-                        else if(params.orderCol == 'MODIFIED_DATE')
-                            orderClause = ` ORDER BY modified_date ${params.orderBy}`;
-                    } else {
-                        orderClause = ` ORDER BY transaction_date DESC`;
-                    }
-                    if(params.offsetEnd != undefined || params.offsetStart != undefined) {
-                        let limit = params.offsetEnd - params.offsetStart;
-                        limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
-                    }
-                }
-                break;
-            case 'FETCH_TRANSACTION_LIST_GROUPIFIED': 
-                filters.push('deleted = 0');
-                if(params._userId)
-                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
-                if(params.accounts) {
-                    let accountVal = params.accounts.map((anAccount) => `'${anAccount}'`);
-                    let joinedAccounts = accountVal.join(', ');
-                    filters.push(`fund_accounts.id in (${joinedAccounts})`);
-                }
-                if(params.category && params.category.length > 0) {
-                    let categ = params.category.map((aCategory) => `'${aCategory}'`);
-                    let joinedCategories = categ.join(', ');
-                    filters.push(`category in (${joinedCategories})`);
-                }
-                if(params.startDate && params.endDate) {
-                    let sd = params.startDate.replace('T',' ').replace('Z', '');
-                    let ed = params.endDate.replace('T',' ').replace('Z', '');
-                    filters.push(`(transaction_date BETWEEN '${sd}' AND '${ed}')`);
-                }
-
-                if(params.customerVal)
-                    filters.push(`customer_REPLACE_USERID.Name like '${params.customerVal}%'`);
-
-                if(params.remarks)
-                    filters.push(`fund_transactions_REPLACE_USERID.remarks like '%${params.remarks}%'`);
-                if(params.orderCol && params.orderBy) {
-                    if(params.orderCol == 'TRN_DATE')
-                        orderClause = ` ORDER BY transaction_date ${params.orderBy}`;
-                    else if(params.orderCol == 'CREATED_DATE')
-                        orderClause = ` ORDER BY created_date ${params.orderBy}`;
-                    else if(params.orderCol == 'MODIFIED_DATE')
-                        orderClause = ` ORDER BY modified_date ${params.orderBy}`;
-                } else {
-                    orderClause = ` ORDER BY transaction_date DESC`;
-                }
-                break;
-
-            case 'FETCH_CONSOL_LIST_FOR_BAL_SHEET':
-                filters.push('deleted = 0');
-                if(params.startDate && params.endDate) {
-                    let sd = params.startDate.replace('T',' ').replace('Z', '');
-                    let ed = params.endDate.replace('T',' ').replace('Z', '');
-                    filters.push(`(transaction_date BETWEEN '${sd}' AND '${ed}')`);
-                }
-                break;
-
-            case 'TRANSACTION_LIST_COLLECTIONS':
-                filters.push('deleted = 0');
-                if(params._userId)
-                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
-                if(params.startDate && params.endDate)
-                    filters.push(`(transaction_date BETWEEN '${params.startDate}' AND '${params.endDate}')`);
-                break;
-            case 'FETCH_TRANSACTION_LIST_BY_BILL':
-                if(params._userId)
-                    filters.push(`fund_transactions_REPLACE_USERID.user_id=${params._userId}`);
-                // if(params.loan_uid) {
-                //     if(params.closed_uid)
-                //         filters.push(`(fund_transactions_REPLACE_USERID.gs_uid=${params.loan_uid} OR fund_transactions_REPLACE_USERID.gs_uid=${params.closed_uid})`);
-                //     else
-                //         filters.push(`fund_transactions_REPLACE_USERID.gs_uid=${params.loan_uid}`);
-                // }
-                if(params.excludeInternal)
-                    filters.push(`fund_transactions_REPLACE_USERID.is_internal=0`);
-                filters.push(`fund_transactions_REPLACE_USERID.gs_uid IN ('${params.uids.join("', '")}')`);
-                break;
-        }
-
-        if(filters.length > 0)
-            filterPart = ` WHERE ${filters.join(' AND ')}`;
-
-        sql = sql.replace('WHERE_CLAUSE', filterPart);
-
-        sql = sql.replace('ORDER_CLAUSE', orderClause);
-
-        sql = sql.replace('LIMIT_OFFSET_CLAUSE', limitOffsetClause);
-
-        // TABLE NAME REPLACEMENT
-        // if(identifier == 'FETCH_TRANSACTION_LIST') sql = sql.replace(/FUND_TRNS_TBL_NAME/g, 'fund_transactions_REPLACE_USERID');
-        // else if(identifier == 'FETCH_TRANSACTION_LIST_V2') sql = sql.replace(/FUND_TRNS_TBL_NAME/g, 'fund_trns_tmp_REPLACE_USERID');
-
-        sql = sql.replace(/REPLACE_USERID/g, params._userId);
-        return sql;
-    }
-
-    FundTransaction._fetchTransactionsApi = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            params._userId =await  utils.getStoreOwnerUserId(accessToken);
-
-            let promiseTasks = [];
-
-            promiseTasks.push(FundTransaction.fetchPaginatedList(params));
-            
-            if(params.fetchFundOverview) {
-                promiseTasks.push(FundTransaction.fetchFilterSuggestions(params));
-                promiseTasks.push(FundTransaction.fetchOpeningBalanceFromDB(params._userId, params.startDate));
-                promiseTasks.push(FundTransaction.fetchClosingBalanceFromDB(params._userId, params.endDate));
-                promiseTasks.push(FundTransaction.fetchCashInOutTotalsFromDB(params));
-            }
-            //  else {
-            //     let limit = params.offsetEnd - params.offsetStart;
-            //     let offset = params.offsetStart;
-            //     promiseTasks.push(FundTransaction.fetchPageWiseOpeningBalanceFromDB(params._userId, params.startDate, params.endDate, limit, offset));
-            // }
-
-            Promise.all(promiseTasks).then(
-                (results) => {
-                    let obj = FundTransaction.constructTransactionListApiResponse(results, params);
-                    resolve(obj);
-                },
-                (error) => {
-                    reject(error);
-                }
-            )
-            .catch(
-                (exception) => {
-                    reject(exception);
-                }
-            );
-        });
-    }
-
-    FundTransaction._fetchTransactionsApiV2 = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            params._userId = await utils.getStoreOwnerUserId(accessToken);
-            let promiseTasks = [];
-            promiseTasks.push(FundTransaction.fetchRecordsWithHelpOfProcedure(params));
-
-            if(params.fetchFilterCollections) 
-                promiseTasks.push(FundTransaction.fetchFilterSuggestions(params));
-
-            // if(params.consolidateCategories && params.consolidateCategories.length > 0)
-            //     res = FundTransaction.consolidate(res, params.consolidateCategories);
-
-            Promise.all(promiseTasks).then(
-                (results) => {
-                    let obj = {
-                        results: results[0].rows,
-                        count: results[0].count
-                    }
-                    if(params.fetchFilterCollections)
-                        obj.collections = FundTransaction._constructCollections(results[1]);
-                    
-                    resolve(obj);
-                },
-                (error) => {
-                    reject(error);
-                }
-            )
-            .catch(
-                (exception) => {
-                    reject(exception);
-                }
-            );
-        });
-    };
-
-    FundTransaction._constructCollections = (collRes) => {
-            let collections = {
-            count: collRes.length,
-            fundAccounts: [],
-            categories: [],
-            // totalCashIn: 0,
-            // totalCashOut: 0,
-        };
-        try {
-            let categorySet = new Set();
-            if(collections.count > 0) {
-                _.each(collRes, (aColl, index) => {
-                    if(aColl.fundAccountId) {
-                        let existsArr = collections.fundAccounts.filter((anObj, index) => {
-                            if(anObj.id == aColl.fundAccountId)
-                                return true;
-                        });
-                        if(existsArr.length == 0)
-                            collections.fundAccounts.push({id: aColl.fundAccountId, name: aColl.name});
-                    }
-                    if(aColl.category && collections.categories.indexOf(aColl.category) == -1)
-                        categorySet.add(aColl.category);  //collections.categories.push(aColl.category);
-                    // if(aColl.cash_in)
-                    //     collections.totalCashIn += aColl.cash_in;
-                    // if(aColl.cash_out)
-                    //     collections.totalCashOut += aColl.cash_out;
-                });
-                collections.categories = Array.from(categorySet);
-            }
-        } catch(e) {
-            console.error(e);
-        }
-        return collections;
-    }
-
-    FundTransaction._fetchTransactionsOverviewApi = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            params._userId = await utils.getStoreOwnerUserId(accessToken);
-            
-            let promiseTasks = [];
-            promiseTasks.push(FundTransaction.fetchOpeningBalanceFromDB(params._userId, params.startDate));
-            promiseTasks.push(FundTransaction.fetchClosingBalanceFromDB(params._userId, params.endDate));
-            promiseTasks.push(FundTransaction.fetchCashInOutTotalsFromDB(params));
-
-            Promise.all(promiseTasks).then(
-                (results) => {
-                    let obj = {};
-                        obj.openingBalance = results[0] || 0;
-                        obj.closingBalance = results[1].closing_balance || 0;
-                        obj.totalCashIn = results[2].total_cash_in || 0;
-                        obj.totalCashOut = results[2].total_cash_out || 0;
-                    resolve(obj);
-                },
-                (error) => {
-                    reject(error);
-                }
-            )
-            .catch(
-                (exception) => {
-                    reject(exception);
-                }
-            );
-        });
-    }
-
-    FundTransaction.fetchCategorySuggestionsApi = (accessToken, mode, cb) => {
-        FundTransaction._fetchCategorySuggestionsApi(accessToken, mode).then(
-            (resp) => {
-                if(resp)
-                    cb(null, {STATUS: 'SUCCESS', RESP: resp});
-                else
-                    cb(null, {STATUS: 'ERROR', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._fetchCategorySuggestionsApi = (accessToken, mode) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(accessToken);
-            let amountCondition;
-            if(mode && mode.length > 0) {
-                amountCondition = 'cash_in > 0';
-                if(mode == 'cash-out')
-                    amountCondition = 'cash_out > 0';
-            }
-            let sql = SQL.CATEGORY_LIST;
-            sql += ` WHERE fund_transactions_REPLACE_USERID.user_id=${userId}`;
-            if(amountCondition)
-                sql += ` AND ${amountCondition}`;
-
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    let arr = [];
-                    _.each(res, (anObj, index) => {
-                        if(anObj.category && arr.indexOf(anObj.category) == -1)
-                            arr.push(anObj.category);
-                    });
-                    return resolve(arr);
-                }
-            });
-        });
-    }
-
-    FundTransaction._fetchConsolTransactionsApi = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let userId = await utils.getStoreOwnerUserId(accessToken);
-                let res;
-                if(params.groupTerms && params.groupTerms.indexOf('COLSOLIDATE_ALL') != -1) {
-                    res = await FundTransaction.getListForBalanceSheet(params, userId);
-                } else {
-                    await FundTransaction.truncateTempTable(userId);
-                    await FundTransaction.cloneToTempTable(params, userId);
-                    await FundTransaction.addGroupIds(params, userId);
-                    res = await FundTransaction.getListByGroups(params, userId);
-                }
-                return resolve({results: res});
-            } catch(e) {
-                console.log(e);
-                return reject(e);
-            }
-        });
-    }
-
-    FundTransaction.truncateTempTable = (userId) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRUNCATE_TRNS_TEMP_TBL;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.cloneToTempTable = (params, userId) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.CLONE_FUND_TRNS_TO_TEMP_TBL;
-            sql = FundTransaction._appendFilters(sql, {...params, _userId: userId}, 'FETCH_TRANSACTION_LIST_GROUPIFIED');
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.addGroupIds = (params, userId) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.ADD_GROUP_IDS;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [params.groupTerms], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.getListByGroups = (params, userId) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRANSACTION_LIST_WITH_GROUPIFIED;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-
-            let limit = params.offsetEnd - params.offsetStart;
-            let limitOffsetClause = ` LIMIT ${limit} OFFSET ${params.offsetStart}`;
-
-            sql = sql.replace('LIMIT_OFFSET_CLAUSE', limitOffsetClause);
-            
-            db.query(sql, [params.groupTerms], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction.getListForBalanceSheet = (params, userId) => {
-        return new Promise((resolve, reject) => {
-            try {
-                let sql = SQL.CONSOLIDATED_LIST_FOR_BALANCE_SHEET;
-                sql = FundTransaction._appendFilters(sql, {...params, _userId: userId}, 'FETCH_CONSOL_LIST_FOR_BAL_SHEET');
-                db.query(sql, (err, res) => {
-                    if(err) {
-                        return reject(err);
-                    } else {
-                        return resolve(res);
-                    }
-                });
-            } catch(e) {
-                console.log(e);
-            }
-        });
-    }
-
-    FundTransaction.add = (params, moduleIdentifier) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                switch(moduleIdentifier) {
-                    case 'pledgebook':
-                        await FundTransaction.addGirviEntry(params);
-                        break;
-                    case 'redeem':
-                        await FundTransaction.addRedeemEntry(params);
-                        break;
-                    case 'udhaar':
-                        await FundTransaction.addUdhaarEntry(params);
-                        break;
-                    case 'jwl_sale':
-                        await FundTransaction.addJwlSaleEntry(params);
-                        break;
-                    case 'jwl_sale_return':
-                        await FundTransaction.addJwlSaleReturnEntry(params);
-                        break;
-                }
-                return resolve(true);
-            } catch(e) {
-                console.log(e);
-                return resolve(true); // this is backend job, so allways returning true.
-            }
-        });
-    }
-
-    FundTransaction.addGirviEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let parsedArg = params.parsedArg;
-            let mode = null;
-            let fromAcc = null;
-            let toAcc = null;
-            let accountNo = null;
-            let upiId = null;
-            let ifscCode = null;
-            if(parsedArg.paymentDetails) {
-                let pd = parsedArg.paymentDetails;
-                mode = pd.mode;
-                if(pd.mode == 'cash') {
-                    fromAcc = pd.cash.fromAccountId;
-                } else if(pd.mode == 'cheque') {
-                    fromAcc = pd.cheque.fromAccountId;
-                } else if(pd.mode == 'online') {
-                    fromAcc = pd.online.fromAccountId;
-                    toAcc = pd.online.toAccount.toAccountId;
-                    accountNo = pd.online.toAccount.accNo;
-                    upiId = pd.online.toAccount.upiId;
-                    ifscCode = pd.online.toAccount.ifscCode;
-                }
-            }
-            let categId = await FundTransaction._getOrCreateCategoryId(parsedArg._userId, 'Girvi');
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let interestAndOtherCharges = parseFloat(parsedArg.interestValue) + parseFloat(parsedArg.otherCharges);
-            let qv = [parsedArg._userId, parsedArg.customerId, 
-                fromAcc, parsedArg.uniqueIdentifier, 
-                parsedArg.date, interestAndOtherCharges, 
-                parsedArg.amount, categId, 
-                parsedArg.billNoWithSeries, mode, 
-                accountNo, ifscCode,
-                currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-
-            let sql = SQL.INTERNAL_GIRVI_TRANSACTION;
-            sql = sql.replace(/REPLACE_USERID/g, parsedArg._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.addRedeemEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                for(let i=0; i<params.data.length; i++) {
-                    let datum = params.data[i];
-                    // let qv = [params._userId, 1, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, 'Redeem', datum.billNo];
-
-                    let mode = null;
-                    let toAcc = null;
-                    if(datum.paymentDetails) {
-                        let pd = datum.paymentDetails;
-                        mode = pd.mode;
-                        toAcc = pd[mode].toAccountId;
-                    }
-                    let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-                    let categId = await FundTransaction._getOrCreateCategoryId(params._userId, 'Redeem');
-                    let qv = [params._userId, datum.customerId, toAcc, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, categId, datum.billNo, mode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-                    
-                    await FundTransaction._addRedeemEntry(qv);
-                }
-                return resolve(true);
-            } catch(e) {
-                return reject(e);
-            }
-        });
-    }
-
-    FundTransaction._addRedeemEntry = (qv) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.INTERNAL_REDEEM_TRANSACTION;
-            sql = sql.replace(/REPLACE_USERID/g, qv[0]);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.addUdhaarEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let destAccDetail = params.destinationAccountDetail;
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let interestAndOtherCharges = parseFloat(params.interestVal);
-            let categId = await FundTransaction._getOrCreateCategoryId(params._userId, 'Udhaar');
-            let qv = [params._userId, params.customerId, params.accountId, params._uniqId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, categId, params._billNo,
-            params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-
-            let sql = SQL.INTERNAL_UDHAAR_TRANSACTION;
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.addJwlSaleEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let categId = await FundTransaction._getOrCreateCategoryId(params.userId, 'Jwl Sale');
-            let qv = [params.userId, params.customerId, params.accountId, params.gsUid, params.transactionDate, params.cashIn, 
-                0, categId, params.remarks, params.cashInMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-            
-            let sql = SQL.INTERNAL_JWL_SALE_TRANSACTION;
-            sql = sql.replace(/REPLACE_USERID/g, params.userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.addJwlSaleReturnEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let categId = await FundTransaction._getOrCreateCategoryId(params.userId, 'Jwl Sale Return');
-            let qv = [params.userId, params.customerId, params.accountId, params.gsUid, params.transactionDate, 0, 
-                params.cashOut, categId, params.remarks, params.cashInMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-            
-            let sql = SQL.INTERNAL_JWL_SALE_TRANSACTION;
-            sql = sql.replace(/REPLACE_USERID/g, params.userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.update = (params, moduleIdentifier) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                switch(moduleIdentifier) {
-                    case 'pledgebook':
-                        await FundTransaction.updateGirviEntry(params);
-                        break;
-                    case 'redeem':
-                        await FundTransaction.updateRedeemEntry(params);
-                        break;
-                    case 'udhaar':
-                        await FundTransaction.updateUdhaarEntry(params);
-                        break;
-                }
-                return resolve(true);
-            } catch(e) {
-                console.log(e);
-                return resolve(true); // this is backend job, so allways returning true.
-            }
-        });
-    }
-
-    FundTransaction.updateGirviEntry = (params) => {
-        return new Promise((resolve, reject) => {
-            let parsedArg = params.parsedArg;
-            let mode = null;
-            let fromAcc = null;
-            let toAcc = null;
-            let accountNo = null;
-            let upiId = null;
-            let ifscCode = null;
-            if(parsedArg.paymentDetails) {
-                let pd = parsedArg.paymentDetails;
-                mode = pd.mode;
-                if(pd.mode == 'cash') {
-                    fromAcc = pd.cash.fromAccountId;
-                } else if(pd.mode == 'cheque') {
-                    fromAcc = pd.cheque.fromAccountId;
-                } else if(pd.mode == 'online') {
-                    fromAcc = pd.online.fromAccountId;
-                    toAcc = pd.online.toAccount.toAccountId;
-                    accountNo = pd.online.toAccount.accNo;
-                    upiId = pd.online.toAccount.upiId;
-                    ifscCode = pd.online.toAccount.ifscCode;
-                }
-            };
-
-            let interestAndOtherCharges = parseFloat(parsedArg.interestValue) + parseFloat(parsedArg.otherCharges);
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let qv = [parsedArg.customerId, fromAcc, parsedArg.date, interestAndOtherCharges, parsedArg.amount, parsedArg.billNoWithSeries, mode, accountNo, ifscCode, currentTImeInUTCTimezone, parsedArg.uniqueIdentifier, parsedArg._userId];
-
-            let sql = SQL.INTERNAL_GIRVI_TRANSACTION_UPDATE;
-            sql = sql.replace(/REPLACE_USERID/g, parsedArg._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.updateRedeemEntry = (params) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                for(let i=0; i<params.data.length; i++) {
-                    let datum = params.data[i];
-                    // let qv = [params._userId, 1, datum.redeemUID, datum.closedDate, datum.paidAmount, 0, 'Redeem', datum.billNo];
-
-                    let mode = null;
-                    let toAcc = null;
-                    if(datum.paymentDetails) {
-                        let pd = datum.paymentDetails;
-                        mode = pd.mode;
-                        toAcc = pd[mode].toAccountId;
-                    }
-                    let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-                    let qv = [ datum.customerId, toAcc, datum.closedDate, datum.paidAmount, datum.billNo, mode, currentTImeInUTCTimezone, datum.redeemUID, params._userId];
-                    await FundTransaction._updateRedeemEntry(qv, params);
-                }
-                return resolve(true);
-            } catch(e) {
-                return reject(e);
-            }
-        });
-    }
-
-    FundTransaction._updateRedeemEntry = (qv, options) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.INTERNAL_REDEEM_TRANSACTION_UPDATE;
-            sql = sql.replace(/REPLACE_USERID/g, options._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.updateUdhaarEntry = (params) => {
-        return new Promise((resolve, reject) => {
-            let destAccDetail = params.destinationAccountDetail;
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let interestAndOtherCharges = parseFloat(params.interestVal);
-            let qv = [params.customerId, params.accountId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, params._billNo,
-            params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, params.udhaarUid, params._userId];
-
-            let sql = SQL.INTERNAL_UDHAAR_TRANSACTION_UPDATE;
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-
-    FundTransaction.removeEntry = (params, moduleIdentifier) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                switch(moduleIdentifier) {
-                    case 'redeem':
-                        await FundTransaction.markRedeemEntryAsDeleted(params);
-                        break;
-                    case 'jwl_sale':
-                        await FundTransaction.markJwlSaleEntryAsDeleted(params);
-                        break;
-                }
-                return resolve(true);
-            } catch(e) {
-                console.log(e);
-                return resolve(true); // this is backend job, so allways returning true.
-            }
-        });
-    }
-
-    FundTransaction.markRedeemEntryAsDeleted = (params) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                for(let i=0; i<params.data.length; i++) {
-                    let datum = params.data[i];
-                    let params2 = {_userId: params._userId, closedBillReference: datum.closedBillReference};
-                    await FundTransaction._markRedeemEntryAsDeleted(params2);
-                }
-                return resolve(true);
-            } catch(e) {
-                return reject(e);
-            }
-        });
-    }
-
-    FundTransaction._markRedeemEntryAsDeleted = (params) => {
-        return new Promise( async (resolve, reject) => {
-            let qv = [params._userId, params.closedBillReference];
-            let sql = SQL.MARK_AS_DELETED;
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.markJwlSaleEntryAsDeleted = (params) => {
-        return new Promise( async (resolve, reject) => {
-            let qv = [params.userId, params.gsUid];
-            let sql = SQL.MARK_AS_DELETED;
-            sql = sql.replace(/REPLACE_USERID/g, params.userId);
-            db.query(sql, qv, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.getOpeningBalanceApi = (accessToken, dateVal, cb) => {
-        FundTransaction._getOpeningBalanceApi(accessToken, dateVal).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._getOpeningBalanceApi = (accessToken, dateVal) => {
-        return new Promise( async (resolve, reject) => {
-            try {
-                let userId = await utils.getStoreOwnerUserId(accessToken);
-                let openingBal = await FundTransaction.fetchOpeningBalanceFromDB(userId, dateVal);
-                return resolve(openingBal);
-            } catch(e) {
-                return reject(e);
-            }
-        });
-    }
-
-    FundTransaction.fetchOpeningBalanceFromDB = (userId, dateVal) => {
-        return new Promise( async (resolve, reject) => {
-            let sql = SQL.OPENING_BALANCE;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [userId, dateVal], (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    if(res && res.length >0)
-                        resolve(res[0].opening_balance);
-                    else
-                        resolve(0);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchClosingBalanceFromDB = (userId, dateVal) => {
-        return new Promise( async (resolve, reject) => {
-            let sql = SQL.CLOSING_BALANCE;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [userId, dateVal], (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    if(res && res.length >0)
-                        resolve({
-                            closing_balance: res[0].closing_balance
-                        });
-                    else
-                        resolve(0);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchCashInOutTotalsFromDB = (params) => {
-        return new Promise( async (resolve, reject) => {
-            let sql = SQL.CASH_IN_OUT_TOTALS;
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, [params._userId, params.startDate, params.endDate], (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    if(res && res.length >0)
-                        resolve({
-                            total_cash_in: res[0].total_cash_in,
-                            total_cash_out: res[0].total_cash_out
-                        });
-                    else
-                        resolve(0);
-                }
-            });
-        });
-    }
-
-
-    FundTransaction.deleteTransactionsApi = (params, cb) => {
-        FundTransaction._deleteTransactionsApi(params).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._deleteTransactionsApi = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let sql = SQL.DELETE_TRANSACTIONS;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [params.transactionIds, userId], (err, res) => {
-                if(err) {
-                    console.log(err);
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            })
-        });
-    }
-
-    FundTransaction.addCashInForBill = (params, cb) => {
-        FundTransaction._addCashInForBill(params).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._addCashInForBill = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let mode = null;
-            let toAcc = null;
-            if(params.paymentDetails) {
-                let pd = params.paymentDetails;
-                mode = pd.mode;
-                toAcc = pd[mode].toAccountId;
-            }
-            let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
-            let categId = await FundTransaction._getOrCreateCategoryId(userId, params.category);
-
-            let queryValues = [userId, params.customerId, toAcc, params.uniqueIdentifier, dateformat(params.dateVal, 'yyyy-mm-dd HH:MM:ss', true),
-                 params.paymentDetails.value, 0, categId, params.remarks, mode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
-            
-            let sql = SQL.ADD_CASH_FOR_BILL;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-
-            db.query(sql, queryValues, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchTransactionsByBillIdApi = (accessToken, uids, cb) => {
-        FundTransaction._fetchTransactionsByBillIdApi(accessToken, uids).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._fetchTransactionsByBillIdApi = (accessToken, uids) => {
-        return new Promise(async (resolve, reject) => {
-            if(uids.length == 0)
-                return reject('Bill ID is not passed.');
-            let params = {uids: uids};
-            params._userId = await utils.getStoreOwnerUserId(accessToken);
-            let res = await FundTransaction._fetchTransactionByBillFromDB(params);
-            return resolve(res);
-        });
-    }
-
-    FundTransaction._fetchTransactionByBillFromDB = (params) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRANSACTION_LIST;
-            sql = FundTransaction._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_BY_BILL');
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction.updateCashInDataApi = (params, cb) => {
-        FundTransaction._updateCashInDataApi(params).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._updateCashInDataApi = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let categId = await FundTransaction._getOrCreateCategoryId(userId, params.category);
-            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), params.amount, categId, params.remarks, params.paymentMode, params.transactionId, userId];
-            let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_IN;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, queryValues, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.updateCashOutDataApi = (params, cb) => {
-        FundTransaction._updateCashOutDataApi(params).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._updateCashOutDataApi = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let destAccDetail = params.destinationAccountDetail;
-            let categId = await FundTransaction._getOrCreateCategoryId(userId, params.category);
-            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 
-                params.amount, categId, params.remarks, 
-                params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, params.transactionId, userId];
-            let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_OUT;
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, queryValues, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchPaginatedList = (params) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRANSACTION_LIST;
-            sql = FundTransaction._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST');
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchFilterSuggestions = (params) => {
-        return new Promise((resolve, reject) => {
-            let totalSql = SQL.TRANSACTION_LIST_COLLECTIONS;
-            totalSql = FundTransaction._appendFilters(totalSql, params, 'TRANSACTION_LIST_COLLECTIONS');
-            totalSql = totalSql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(totalSql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    // _.each()
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction.constructTransactionListApiResponse = (results, reqParams) => {
-        let resp = {
-            results: results[0]
-        };
-        if(reqParams.fetchFundOverview) {
-            resp.collections = FundTransaction._constructCollections(results[1]);
-            resp.openingBalance = results[2] || 0;
-            resp.closingBalance = results[3].closing_balance || 0;
-            resp.totalCashIn = results[4].total_cash_in || 0;
-            resp.totalCashOut = results[4].total_cash_out || 0;
-        }
-        return resp;
-    }
+    
 
     /*
     FundTransaction.fetchBalanceValByDateAndLimitRange = (userId, dateVal, endDate, limit, offset) => {
@@ -1688,287 +1973,7 @@ export const FundTransaction = new FundTransactionCls();
     //     return bal1+bal2;
     // }
 
-    FundTransaction.checkTempTableLoclStatus = () => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TEMP_TABLE_LOCK_STATUS;
-            sql = sql.replace(/WHERE_CLAUSE/g, `WHERE table_name="fund_trns_tmp_REPLACE_USERID"`);
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) return reject(err);
-                else return resolve(res[0].is_locked);
-            });
-        });
-    }
-
-    FundTransaction.setLockStatus = (status) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.SET_TEMP_TABLE_LOCK_STATUS;
-            sql = sql.replace(/WHERE_CLAUSE/g, `WHERE table_name="fund_trns_tmp_REPLACE_USERID"`);
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, [status], (err, res) => {
-                if(err) console.log(err);
-                return resolve(true);
-            });
-        });
-    }
-
-    FundTransaction.invokeStoredProcedure = (params) => {
-        return new Promise((resolve, reject) => {
-            let stDate = params.startDate.replace(/Z/, '').replace(/T/, ' ');
-            let endDate = params.endDate.replace(/Z/, '').replace(/T/, ' ');
-            let sql = `CALL fund_trns_procedure_REPLACE_USERID('${stDate}', '${endDate}', ${params._userId})`;
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(true);
-                }
-            });        
-        });
-    };
-
-    // FundTransaction.addGroupIds = (params) => {
-    //     return new Promise((resolve, reject) => {
-    //         let sql = SQL.ADD_GROUP_IDS;
-    //         sql = sql.replace(/REPLACE_USERID/g, params._userId);
-    // db.query(sql, [params.groupTerms], (err, res) => {
-    //             if(err) {
-    //                 return reject(err);
-    //             } else {
-    //                 return resolve(true);
-    //             }
-    //         });
-    //     });
-    // }
-
-    FundTransaction.fetchRecordsFromTempTable = (params) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRANSACTION_LIST_V2;
-            sql = FundTransaction._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_V2');
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchTotCountFromTempTable = (params) => {
-        return new Promise((resolve, reject) => {
-            let sql = SQL.TRANSACTION_LIST_TOT_COUNT;
-            sql = FundTransaction._appendFilters(sql, params, 'FETCH_TRANSACTION_LIST_TOT_COUNT');
-            sql = sql.replace(/REPLACE_USERID/g, params._userId);
-            db.query(sql, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res[0].count);
-                }
-            });
-        });
-    }
-
-    FundTransaction.fetchRecordsWithHelpOfProcedure = (params) => {
-        return new Promise(async (resolve, reject) => {
-
-            let isLocked = 0;// await FundTransaction.checkTempTableLoclStatus();
-            if(isLocked) {
-                params._retryAttemptForProcedureCall = params._retryAttemptForProcedureCall || 0;
-                params._retryAttemptForProcedureCall++;
-                if(params._retryAttemptForProcedureCall < 10) {
-                    setTimeout(() => {
-                        return FundTransaction.fetchRecordsWithHelpOfProcedure(params);
-                    }, 1000);
-                } else {
-                    // await FundTransaction.setLockStatus(0);
-                    return FundTransaction.fetchRecordsWithHelpOfProcedure(params);
-                }
-            } else {
-                // await FundTransaction.setLockStatus(1);
-                await FundTransaction.invokeStoredProcedure(params);
-                let res = await FundTransaction.fetchRecordsWithTotCountFromTempTbl(params);
-                // FundTransaction.setLockStatus(0);
-                return resolve(res);
-            } 
-        });
-    }
-
-    FundTransaction.fetchRecordsWithTotCountFromTempTbl = (params) => {
-        return new Promise((resolve, reject) => {
-            let promiseTasks = [];
-            promiseTasks.push(FundTransaction.fetchRecordsFromTempTable(params));
-            promiseTasks.push(FundTransaction.fetchTotCountFromTempTable(params));
-            Promise.all(promiseTasks).then(
-                (results) => {
-                    let obj = {
-                        rows: results[0],
-                        count: results[1]
-                    }
-                    resolve(obj);
-                },
-                (error) => {
-                    reject(error);
-                }
-            )
-            .catch(
-                (exception) => {
-                    reject(exception);
-                }
-            );
-        });
-    }
-
-    /*FundTransaction.getUdhaarListApi = (params, cb) => {
-        FundTransaction._getUdhaarListApi(params).then(
-            (resp) => {
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            }
-        ).catch(
-            (e)=> {
-                cb({STATUS: 'EXCEPTION', ERR: e}, null);
-            }
-        );
-    }
-
-    FundTransaction._getUdhaarListApi = (params) => {
-        return new Promise(async (resolve, reject) => {
-            let userId = await utils.getStoreOwnerUserId(params.accessToken);
-            
-            let promise1 = new Promise((resolve, reject) => {
-                db.query()
-            });
-        });
-    }*/
-
-    FundTransaction.addTag = (apiParams) => {
-        return new Promise(async (resolve, reject) => {
-            let sql = SQL.ADD_TAG;
-            sql = sql.replace(/REPLACE_USERID/g, apiParams._userId);
-            db.query(sql, [apiParams.tagNumber, apiParams.ids], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve('Tagged Successfully!');
-                }
-            });
-        });
-    }
-
-    FundTransaction.removeTag = (apiParams) => {
-        return new Promise(async (resolve, reject) => {
-            let sql = SQL.REMOVE_TAG;
-            sql = sql.replace(/REPLACE_USERID/g, apiParams._userId);
-            db.query(sql, [apiParams.ids], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve('Removed Tags Successfully!');
-                }
-            });
-        });
-    }
-
-    FundTransaction.transactionsExportAPI = async (accessToken, params, res, cb) => {
-        try {
-            params._userId = await utils.getStoreOwnerUserId(accessToken);
-            let {rows} = await FundTransaction.fetchRecordsWithHelpOfProcedure(params);
-            rows = FundTransaction.parseRecordsObtainedFromDB(rows);
-            let fileLocation = utils.getCsvStorePath();
-            let status = await FundTransaction._writeCSVfile(rows, fileLocation);
-            res.download(fileLocation, 'Fund Transactions.csv');
-        } catch(e) {
-            res.send({STATUS: 'error', ERROR: e});
-        }
-    }
-
-    FundTransaction.parseRecordsObtainedFromDB = (rows) => {
-        try {
-            return rows.map(row => {
-                row.transaction_date = utils.convertDatabaseDateTimetoDateStr(row.transaction_date)
-                return row;
-            });
-        } catch(e) {
-            console.log(e);
-            return rows;
-        }
-    }
-
-    FundTransaction._writeCSVfile = (jsonObj, fileLocation) => {
-        return new Promise((resolve, reject) => {
-            const csvWriter = createCsvWriter({
-                path: fileLocation,
-                header: [
-                    {id: 'transaction_date', title: 'Date'},
-                    {id: 'fund_house_name', title: 'Account'},
-                    {id: 'CustomerName', title: 'Customer'},
-                    {id: 'category', title: 'Category'},
-                    {id: 'remarks', title: 'Remarks'},
-                    {id: 'cash_in', title: 'Cash In'},
-                    {id: 'cash_out', title: 'Cash Out'},
-                    {id: 'afterBal', title: 'Balance'}
-                ]
-            });
-            csvWriter.writeRecords(jsonObj)
-                .then(
-                    () => {
-                        resolve(true);
-                        console.log('...Done');
-                    },
-                    (err) => {
-                        console.log('ERROR occured.....');
-                        console.error(err);
-                        reject(err);
-                    }
-                )
-                .catch(
-                    (e) => {
-                        console.log('Exception occured.....');
-                        console.error(e);
-                        reject(e);
-                    }
-                )
-        });
-    }
-
-    FundTransaction._getOrCreateCategoryId = async (userId, categoryText) => {
-        let res = await FundTransaction._getCategId(userId, categoryText);
-        let categId = null;
-        if(res.length == 0) {
-            let ins = await FundTransaction._insertNewCateg(userId, categoryText);
-            categId = ins.insertId;
-        } else {
-            categId = res[0].id;
-        }
-        return categId;
-    }
-
-    FundTransaction._getCategId = (userId, categoryText) => {
-        return new Promise((resolve, reject) => {
-            db.query(SQL.GET_CATEG_ID, [userId, categoryText], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    FundTransaction._insertNewCateg = (userId, categoryText) => {
-        return new Promise((resolve, reject) => {
-            db.query(SQL.INSERT_NEW_CATEGORY, [userId, categoryText], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
+    
 // }
 
 let SQL = {

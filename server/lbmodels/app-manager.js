@@ -9,7 +9,7 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 import { Common } from './common.js';
 const router = express.Router();
 
-class ApplicationManagerCls {
+export class ApplicationManagerCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }

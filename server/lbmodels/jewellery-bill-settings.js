@@ -4,7 +4,7 @@ let _ = require('lodash');
 const { remoteMethod } = require('../routes/remoteMethod.js');
 import express from 'express';
 import db from '../db/index.js';
-class JewelleryBillSettingsCls {
+export class JewelleryBillSettingsCls {
     constructor() {
 
     }
@@ -12,77 +12,8 @@ class JewelleryBillSettingsCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-const router = express.Router();
-
-const JewelleryBillSettings = new JewelleryBillSettingsCls();
-
-
-// module.exports = function(JewelleryBillSettings) {
-    JewelleryBillSettingsCls.prototype.remoteMethod('getSettingsApi', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            },
-            {
-                arg: 'category', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let category = req && req.query.category;
-                    return category;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/get-settings', verb: 'get'},
-        description: 'Jewellery Bill Header Setting.',
-    });
-    JewelleryBillSettingsCls.prototype.remoteMethod('updateSettingsApi', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-settings', verb: 'post'},
-        description: 'Loan Bill Setting.',
-    });
-    JewelleryBillSettingsCls.prototype.remoteMethod('getAvlJewelleryBillSettingssApi', {
-        accepts: [],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/fetch-avl-jewellery-bill-templates', verb: 'get'},
-        description: 'Get ALL avl Loan Bill Templates.',
-    });
-
-    JewelleryBillSettingsCls.prototype.getSettingsApi = (accessToken, category, cb) => {
-        JewelleryBillSettingsCls.prototype._getSettingsApiByCategory({accessToken, category}).then(
+    getSettingsApi(accessToken, category, cb) {
+        this._getSettingsApiByCategory({accessToken, category}).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -96,7 +27,7 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         );
     };
 
-    JewelleryBillSettingsCls.prototype._getTemplateSettingsApi = async (params) => {
+    async _getTemplateSettingsApi(params) {
         try {
             if(!params._userId)
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
@@ -128,7 +59,7 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         }
     }
 
-    JewelleryBillSettingsCls.prototype._getSettingsApiByCategory = async (params) => {
+    async _getSettingsApiByCategory(params) {
         try {
             if(!params._userId)
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
@@ -157,8 +88,8 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         }
     }
 
-    JewelleryBillSettingsCls.prototype.updateSettingsApi = (apiParams, cb) => {
-        JewelleryBillSettingsCls.prototype._updateSettingsApi(apiParams).then(
+    updateSettingsApi(apiParams, cb) {
+        this._updateSettingsApi(apiParams).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -172,11 +103,11 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         );
     };
 
-    JewelleryBillSettingsCls.prototype._updateSettingsApi = async (apiParams) => {
+    async _updateSettingsApi(apiParams) {
         try {
             apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
-            await JewelleryBillSettingsCls.prototype._updateSettingsInDB('gst', {_userId: apiParams._userId, ...apiParams.gst});
-            await JewelleryBillSettingsCls.prototype._updateSettingsInDB('estimate', {_userId: apiParams._userId, ...apiParams.estimate});
+            await this._updateSettingsInDB('gst', {_userId: apiParams._userId, ...apiParams.gst});
+            await this._updateSettingsInDB('estimate', {_userId: apiParams._userId, ...apiParams.estimate});
             return true;
         } catch(e) {
             console.log(e);
@@ -184,7 +115,7 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         }
     };
 
-    JewelleryBillSettingsCls.prototype._updateSettingsInDB = async (category, payload) => {
+    async _updateSettingsInDB(category, payload) {
         let sql = `SELECT * FROM jewellery_bill_settings WHERE user_id = ? AND category = ?`;
         let queryParams = [payload._userId, category];
         let records = await db.query(sql, queryParams);
@@ -208,8 +139,8 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         return true;
     }
 
-    JewelleryBillSettingsCls.prototype.getAvlJewelleryBillSettingssApi = (cb) => {
-        JewelleryBillSettingsCls.prototype._getAvlJewelleryBillSettingssApi().then(
+    getAvlJewelleryBillSettingssApi(cb) {
+        this._getAvlJewelleryBillSettingssApi().then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -223,7 +154,7 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         );
     }
 
-    JewelleryBillSettingsCls.prototype._getAvlJewelleryBillSettingssApi = () => {
+    _getAvlJewelleryBillSettingssApi() {
         return new Promise((resolve, reject) => {
             db.query(SQL.LIST, (err, res) => {
                 if(err) {
@@ -247,7 +178,7 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
         });
     }
 
-    JewelleryBillSettingsCls.prototype.incrementSerialAndNumber = (userId, billNo, category) => {
+    incrementSerialAndNumber(userId, billNo, category) {
         return new Promise((resolve, reject) => {
             db.query(SQL.INCR_INVOICE_NO, [billNo, category, userId], (err, res) => {
                 if(err) {
@@ -258,6 +189,75 @@ const JewelleryBillSettings = new JewelleryBillSettingsCls();
             });
         });
     }
+
+}
+const router = express.Router();
+
+const JewelleryBillSettings = new JewelleryBillSettingsCls();
+
+
+// module.exports = function(JewelleryBillSettings) {
+    JewelleryBillSettings.remoteMethod('getSettingsApi', {
+        accepts: [
+            {
+                arg: 'accessToken', type: 'string', http: (ctx) => {
+                    let req = ctx && ctx.req;
+                    let accessToken = req && req.query.access_token;
+                    return accessToken;
+                },
+                description: 'Arguments goes here',
+            },
+            {
+                arg: 'category', type: 'string', http: (ctx) => {
+                    let req = ctx && ctx.req;
+                    let category = req && req.query.category;
+                    return category;
+                },
+                description: 'Arguments goes here',
+            }],
+        returns: {
+            type: 'object',
+            root: true,
+            http: {
+                source: 'body'
+            }
+        },
+        http: {path: '/get-settings', verb: 'get'},
+        description: 'Jewellery Bill Header Setting.',
+    });
+    JewelleryBillSettings.remoteMethod('updateSettingsApi', {
+        accepts: {
+            arg: 'apiParams',
+            type: 'object',
+            default: {
+                
+            },
+            http: {
+                source: 'body',
+            },
+        },
+        returns: {
+            type: 'object',
+            root: true,
+            http: {
+                source: 'body'
+            }
+        },
+        http: {path: '/update-settings', verb: 'post'},
+        description: 'Loan Bill Setting.',
+    });
+    JewelleryBillSettings.remoteMethod('getAvlJewelleryBillSettingssApi', {
+        accepts: [],
+        returns: {
+            type: 'object',
+            root: true,
+            http: {
+                source: 'body'
+            }
+        },
+        http: {path: '/fetch-avl-jewellery-bill-templates', verb: 'get'},
+        description: 'Get ALL avl Loan Bill Templates.',
+    });
 // }
 
 let SQL = {

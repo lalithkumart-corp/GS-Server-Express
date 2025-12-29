@@ -12,17 +12,10 @@ export class UserPreferenceCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-const UserPreference = new UserPreferenceCls();
-
-
-// module.exports = function(UserPreference) {
-
-    UserPreferenceCls.prototype.fetchUserPreferenceAPI = async (accessToken) => {
+    async fetchUserPreferenceAPI(accessToken) {
         try {
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            let res = await UserPreferenceCls.prototype._fetchFromDB(userId);
+            let res = await this._fetchFromDB(userId);
             return {
                 STATUS: 'SUCCESS',
                 USER_PREFERENCES: res
@@ -37,28 +30,7 @@ const UserPreference = new UserPreferenceCls();
         }
     }
 
-    UserPreferenceCls.prototype.remoteMethod('fetchUserPreferenceAPI', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/get-user-preferences', verb: 'get'},
-        description: 'For fetching user preferences.',
-    });
-
-    UserPreferenceCls.prototype._fetchFromDB = (userId) => {
+    _fetchFromDB(userId) {
         return new Promise( (resolve, reject) => {
             try {
                 db.query(`SELECT * FROM user_preferences WHERE user_id = ?`, [userId], (err, res) => {
@@ -79,10 +51,10 @@ const UserPreference = new UserPreferenceCls();
         });
     }
 
-    UserPreferenceCls.prototype.updateAPI = async (params) => {
+    async updateAPI(params) {
         try {
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            await UserPreferenceCls.prototype._insertOrUpdate(params);
+            await this._insertOrUpdate(params);
             return {
                 STATUS: 'success'
             }
@@ -96,29 +68,7 @@ const UserPreference = new UserPreferenceCls();
         }
     }
 
-    UserPreferenceCls.prototype.remoteMethod('updateAPI', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-user-preference', verb: 'post'},
-        description: 'Update user preferences'
-    });
-
-    UserPreferenceCls.prototype._getUpdatedValues = (params) => {
+    _getUpdatedValues(params) {
         let val = {};
         if(params.place)
             val.bill_create_place_default = params.place;
@@ -136,7 +86,7 @@ const UserPreference = new UserPreferenceCls();
         return val;
     }
 
-    UserPreferenceCls.prototype._insertOrUpdate = (params) => {
+    _insertOrUpdate(params) {
         return new Promise( (resolve, reject) => {
             db.query(`SELECT * FROM user_preferences WHERE user_id = ?`, [params._userId], (err, res) => {
                 if(err) {
@@ -147,7 +97,7 @@ const UserPreference = new UserPreferenceCls();
                 } else {
                     if(res && res.length > 0) {
 
-                        db.query(`UPDATE user_preferences SET ? WHERE user_id = ?`, [UserPreferenceCls.prototype._getUpdatedValues(params), params._userId], (err, res) => {
+                        db.query(`UPDATE user_preferences SET ? WHERE user_id = ?`, [this._getUpdatedValues(params), params._userId], (err, res) => {
                             if(err) {
                                 // TODO: Mig Refactor
                                 // let gsError = GsErrorCtrl.create({className: 'UserPreference', methodName: '_insertOrUpdate', message: 'Error occured while updating defaults in DB', cause: err});
@@ -181,7 +131,52 @@ const UserPreference = new UserPreferenceCls();
             });
         });
     }
-// }
+}
+
+const UserPreference = new UserPreferenceCls();
+
+UserPreference.remoteMethod('fetchUserPreferenceAPI', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/get-user-preferences', verb: 'get'},
+    description: 'For fetching user preferences.',
+});
+
+UserPreference.remoteMethod('updateAPI', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-user-preference', verb: 'post'},
+    description: 'Update user preferences'
+});
 
 export default router;
 export { UserPreference };
