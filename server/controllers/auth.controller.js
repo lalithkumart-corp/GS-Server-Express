@@ -1,46 +1,26 @@
 import { validatePassword } from "../components/bcrypt.js";
 import { generateToken } from "../components/jwt.js";
 import db from "../db";
-
-
-const SQL = {
-    FIND_USER: 'SELECT * FROM user WHERE email = ?'
-};
+import UserService from "../services/user.service.js";
 
 export const loginUser = async (req, res) => {
     try {
-        const users = await db.query(SQL.FIND_USER, [req.body.useremail]);
-        
-        if (users.length === 0) {
+        const userService = new UserService();
+        const result = await userService.login(req.body.email, req.body.password);
+
+        if (result.status === 404) {
             return res.status(404).json({
                 message: "User not found."
             });
         }
 
-        const user = users[0];
-        const passwordIsValid = validatePassword(req.body.password, user.password);
-
-        if (!passwordIsValid) {
+        if (result.status === 401) {
             return res.status(401).json({
                 message: "Invalid Password!"
             });
         }
 
-        const token = generateToken({
-            id: user.id,
-            userName: user.user_name,
-            userEmail: user.email
-        });
-
-        // insert into acccesstoken table
-        // await db.query(`INSERT INTO accesstoken ('id', 'user_id') VALUES (${token}, ${user.id})`);
-
-        res.status(200).json({
-            token,
-            userId: user.id,
-            userName: user.user_name,
-            userEmail: user.email
-        });
+        res.status(200).json(result.data);
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -48,3 +28,4 @@ export const loginUser = async (req, res) => {
         });
     }
 };
+

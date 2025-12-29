@@ -18,7 +18,7 @@
             ],
             // "program": "${workspaceFolder}\\dist-server\\bin\\www.js",
             "console": "integratedTerminal",
-            "preLaunchTask": "npm: build",
+            "preLaunchTask": "npm: vs_debug_build",
             "sourceMaps": true
         }
     ]

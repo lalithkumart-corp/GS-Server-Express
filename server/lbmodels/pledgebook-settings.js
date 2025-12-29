@@ -1,10 +1,11 @@
 'use strict';
 let utils = require('../utils/commonUtils');
 import express from 'express';
+import db from '../../../GS-Server-New/server/db/index.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
-export class PledgebooksettingsCls {
+class PledgebooksettingsCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
@@ -15,32 +16,55 @@ export const Pledgebooksettings = new PledgebooksettingsCls();
 
 
 // module.exports = function(Pledgebooksettings) {
-    Pledgebooksettings.updateLastBillDetail = (data) => {
+    PledgebooksettingsCls.prototype.updateLastBillDetail = (data) => {
         return new Promise((resolve, reject) => {
             let userId = data._userId;
 
-            Pledgebooksettings.findOrCreate({where: {userId: userId}}, {userId: userId, billStart: 1, billLimit: 10000}, (err, res) => {
+            db.query('SELECT * FROM pledgebook_settings WHERE userId = ?', [userId], (err, res) => {
                 if(err) {
-                    console.log(err); //TODO: Replace with Logger;
-                    reject(err);
+                    return reject(err);
                 } else {
-                    Pledgebooksettings.updateAll({userId: userId}, {billSeries: data.billSeries, lastCreatedBillNo: data.billNo}, (error, result) => {
-                        if(error) {
-                            reject(error);
-                        } else {
-                            resolve(result);
-                        }
-                    });
+                    if(res && res.length > 0) {
+                        PledgebooksettingsCls.updateAll({user_id: userId}, {bill_series: data.billSeries, last_created_bill_no: data.billNo}, (error, result) => {
+                            if(error) {
+                                return reject(error);
+                            } else {
+                                return resolve(result);
+                            }
+                        });
+                    } else {
+                        db.query('INSERT INTO pledgebook_settings (user_id, bill_series, last_created_bill_no, bill_start, bill_limit) VALUES (?, ?, ?, ?, ?)', [userId, data.billSeries, data.billNo, 1, 10000], (insertErr, insertRes) => {
+                            if(insertErr) {
+                                return reject(insertErr);
+                            } else {
+                                return  resolve(insertRes);
+                            }
+                        });
+                    }
                 }
-            });            
+            });
+            // PledgebooksettingsCls.findOrCreate({where: {userId: userId}}, {userId: userId, billStart: 1, billLimit: 10000}, (err, res) => {
+            //     if(err) {
+            //         console.log(err); // TODO: Mig Refactor
+            //         reject(err);
+            //     } else {
+            //         PledgebooksettingsCls.updateAll({userId: userId}, {billSeries: data.billSeries, lastCreatedBillNo: data.billNo}, (error, result) => {
+            //             if(error) {
+            //                 reject(error);
+            //             } else {
+            //                 resolve(result);
+            //             }
+            //         });
+            //     }
+            // });            
         });
     }
 
-    Pledgebooksettings.UpdateBillNumberAPIHanlder = async (params, cb) => {
+    PledgebooksettingsCls.prototype.UpdateBillNumberAPIHanlder = async (params, cb) => {
         let resp = {STATUS: 'SUCCESS'};
         try {
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            await Pledgebooksettings.updateLastBillDetail(params);       
+            await PledgebooksettingsCls.prototype.updateLastBillDetail(params);
             resp.MSG = 'Updated the bill settings successfully!';
         } catch(e) {
             resp.STATUS = 'ERROR';
@@ -50,7 +74,7 @@ export const Pledgebooksettings = new PledgebooksettingsCls();
         }
     }
 
-    Pledgebooksettings.remoteMethod('UpdateBillNumberAPIHanlder', {
+    PledgebooksettingsCls.prototype.remoteMethod('UpdateBillNumberAPIHanlder', {
         accepts: {
                 arg: 'params',
                 type: 'object',
@@ -72,18 +96,18 @@ export const Pledgebooksettings = new PledgebooksettingsCls();
         description: 'Update bill series and number'
     });
 
-    Pledgebooksettings.getLastBillSeriesAndNumber =  (accessToken, cb) => {
+    PledgebooksettingsCls.prototype.getLastBillSeriesAndNumber =  (accessToken, cb) => {
         utils.getStoreOwnerUserId(accessToken)
         .then(
             (userId) => {
-                Pledgebooksettings.findOne({where: {userId: userId}}, (err, result) => {
+                db.query('SELECT * FROM pledgebook_settings WHERE userId = ?', [userId], (err, result) => {
                     if(err) {
                         cb(err, null);
                     } else {
-                        let data = result || {};
+                        let data = result[0] || {};
                         let returnVal = {
-                            billSeries: data.billSeries,
-                            billNo: data.lastCreatedBillNo
+                            billSeries: data.bill_series, //billSeries,
+                            billNo: data.last_created_bill_no, //lastCreatedBillNo
                         };
                         cb(null, returnVal);
                     }
@@ -101,7 +125,7 @@ export const Pledgebooksettings = new PledgebooksettingsCls();
               
     };
 
-    Pledgebooksettings.remoteMethod('getLastBillSeriesAndNumber', {
+    PledgebooksettingsCls.prototype.remoteMethod('getLastBillSeriesAndNumber', {
         accepts: {
             arg: 'accessToken', type: 'string', http: (ctx) => {
                 var req = ctx && ctx.req;

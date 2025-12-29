@@ -13,6 +13,7 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const createCsvStringifier = require('csv-writer').createObjectCsvStringifier;
 let path = require('path');
 const { remoteMethod } = require('../routes/remoteMethod.js');
+
 const ANALYTICS = {
     TOP_CUSTOMERS_LIMIT: 2
 };
@@ -24,16 +25,16 @@ const PAYMENT_MODE = {
 
 const router = express.Router();
 
-export class PledgebookCls {
+class PledgebookCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
 
 }
 
-const Pledgebook = new PledgebookCls();
+export const Pledgebook = new PledgebookCls();
 
-    Pledgebook.remoteMethod('insertNewBillAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('insertNewBillAPIHandler', {
         accepts: {
                 arg: 'apiParams',
                 type: 'object',
@@ -55,7 +56,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Adding a new record in pledgebook'
     });
 
-    Pledgebook.remoteMethod('updateBillAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('updateBillAPIHandler', {
         accepts: {
                 arg: 'data',
                 type: 'object',
@@ -77,8 +78,8 @@ const Pledgebook = new PledgebookCls();
         description: 'Updating the existing bill in pledgebook'
     });
 
-    Pledgebook.getPendingBillsAPIHandler = (accessToken, params, cb) => {
-        Pledgebook.getPendingBills(accessToken, params)
+    PledgebookCls.prototype.getPendingBillsAPIHandler = (accessToken, params, cb) => {
+        PledgebookCls.prototype.getPendingBills(accessToken, params)
             .then(
                 (success) => {
                     try {
@@ -109,7 +110,7 @@ const Pledgebook = new PledgebookCls();
             )        
     };    
 
-    Pledgebook.remoteMethod('getPendingBillsAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('getPendingBillsAPIHandler', {
         accepts: [
             {
                 arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -138,7 +139,7 @@ const Pledgebook = new PledgebookCls();
         description: 'For fetching pending bills.',
     });
 
-    Pledgebook.remoteMethod('billRenewalApiHandler', {
+    PledgebookCls.prototype.remoteMethod('billRenewalApiHandler', {
         accepts: [
             {
                 arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -170,7 +171,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Bill Renewal'
     });
 
-    Pledgebook.remoteMethod('redeemPendingBillAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('redeemPendingBillAPIHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -192,7 +193,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Updating bill in pledgebook'
     });
 
-    Pledgebook.remoteMethod('reOpenClosedBillsAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('reOpenClosedBillsAPIHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -214,7 +215,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Re-opening a closed bill in pledgebook'
     });    
 
-    Pledgebook.remoteMethod('getPendingBillNosAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('getPendingBillNosAPIHandler', {
         accepts: [
             {
                 arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -235,7 +236,7 @@ const Pledgebook = new PledgebookCls();
         description: 'For fetching pending bills Numbers.',
     });
 
-    Pledgebook.remoteMethod('getBillDetailsAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('getBillDetailsAPIHandler', {
         accepts: [
             {
                 arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -293,7 +294,7 @@ const Pledgebook = new PledgebookCls();
         description: 'For fetching bill data.',
     });
 
-    Pledgebook.remoteMethod('fetchUserHistoryAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('fetchUserHistoryAPIHandler', {
         accepts: [{
                 arg: 'accessToken', type: 'string', http: (ctx) => {
                     let req = ctx && ctx.req;
@@ -340,7 +341,7 @@ const Pledgebook = new PledgebookCls();
         description: 'For fetching customer total bill history'
     })
 
-    Pledgebook.remoteMethod('exportAPIHandler', {
+    PledgebookCls.prototype.remoteMethod('exportAPIHandler', {
         accepts: [
             {
                 arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -370,7 +371,7 @@ const Pledgebook = new PledgebookCls();
         description: 'For exporting the pledgebook'
     });
 
-    Pledgebook.remoteMethod('archiveBillsApiHandler', {
+    PledgebookCls.prototype.remoteMethod('archiveBillsApiHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -392,7 +393,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Archive the bills in pledgebook'
     });
 
-    Pledgebook.remoteMethod('unArchiveBillsApiHandler', {
+    PledgebookCls.prototype.remoteMethod('unArchiveBillsApiHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -414,7 +415,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Archive the bills in pledgebook'
     });
 
-    Pledgebook.remoteMethod('trashBillsApiHandler', {
+    PledgebookCls.prototype.remoteMethod('trashBillsApiHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -436,7 +437,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Trash the bills in pledgebook'
     });
 
-    Pledgebook.remoteMethod('restoreTrashedBillsApiHandler', {
+    PledgebookCls.prototype.remoteMethod('restoreTrashedBillsApiHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -458,7 +459,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Resote the trahsed bills in pledgebook'
     });
 
-    Pledgebook.remoteMethod('deleteBillApiHandler', {
+    PledgebookCls.prototype.remoteMethod('deleteBillApiHandler', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -480,7 +481,7 @@ const Pledgebook = new PledgebookCls();
         description: 'Delete Bills in Pledgebook'
     });
 
-    Pledgebook.remoteMethod('fetchAnalyticsData', {
+    PledgebookCls.prototype.remoteMethod('fetchAnalyticsData', {
         accepts: [{
                 arg: 'accessToken', type: 'string', http: (ctx) => {
                     let req = ctx && ctx.req;
@@ -543,7 +544,7 @@ const Pledgebook = new PledgebookCls();
         description: ''
     });
 
-    Pledgebook.remoteMethod('fetchAnalyticsDataByCustomerWise', {
+    PledgebookCls.prototype.remoteMethod('fetchAnalyticsDataByCustomerWise', {
         accepts: [{
                 arg: 'accessToken', type: 'string', http: (ctx) => {
                     let req = ctx && ctx.req;
@@ -614,21 +615,21 @@ const Pledgebook = new PledgebookCls();
         description: ''
     })
 
-    Pledgebook.insertNewBillAPIHandler = async (data, cb) => {
+    PledgebookCls.prototype.insertNewBillAPIHandler = async (data, cb) => {
         try {
             let params = data.requestParams;
             params.accessToken = data.accessToken;
             if(!params.accessToken)
                 throw 'Access Token is missing';
-            let parsedArg = Pledgebook.parseInputData(params);
+            let parsedArg = PledgebookCls.prototype.parseInputData(params);
             parsedArg._userId = await utils.getStoreOwnerUserId(params.accessToken);
             console.log('ParsedArg:', parsedArg);
             let isActiveUser = await utils.getAppStatus(parsedArg._userId);
             if(!isActiveUser)
                 throw 'User is Not Active';
-            
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(parsedArg._userId);
-            let validation = await Pledgebook.doValidation(parsedArg, pledgebookTableName);
+
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(parsedArg._userId);
+            let validation = await PledgebookCls.prototype.doValidation(parsedArg, pledgebookTableName);
             if(validation.status) {
                 parsedArg.userPicture.id = parsedArg.userPicture?parsedArg.userPicture.imageId:null;
                 parsedArg.ornPicture.id = parsedArg.ornPicture?parsedArg.ornPicture.imageId:null;
@@ -669,7 +670,7 @@ const Pledgebook = new PledgebookCls();
                 //         parsedArg.billRemarks += ` Other Mobile: ${parsedArg.mobile}`;
                 // }
 
-                await Pledgebook.saveBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook
+                await PledgebookCls.prototype.saveBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook
                 await Pledgebooksettings.updateLastBillDetail(parsedArg);
                 FundTransaction.add({parsedArg, pledgebookTableName}, 'pledgebook');
                 return {STATUS: 'SUCCESS', STATUS_MSG: 'Successfully inserted new bill'};
@@ -681,7 +682,7 @@ const Pledgebook = new PledgebookCls();
         }        
     }    
 
-    Pledgebook.saveBillDetails = (params, pledgebookTableName) => {
+    PledgebookCls.prototype.saveBillDetails = (params, pledgebookTableName) => {
         return new Promise( (resolve, reject) => {
             let dbInputValues = [
                 params.uniqueIdentifier,
@@ -712,7 +713,7 @@ const Pledgebook = new PledgebookCls();
                 params.modifiedDate,
             ];
             //
-            let query = Pledgebook.getQuery('insert', dbInputValues, pledgebookTableName);
+            let query = PledgebookCls.prototype.getQuery('insert', dbInputValues, pledgebookTableName);
             db.query(query, dbInputValues, (err, result) => {
                 if(err) {
                     reject ( err );
@@ -723,7 +724,7 @@ const Pledgebook = new PledgebookCls();
         });        
     }
 
-    Pledgebook.getPendingBills = (accessToken, params) => {
+    PledgebookCls.prototype.getPendingBills = (accessToken, params) => {
         return new Promise( async (resolve, reject) => {
             try {
                 // console.log('***getPendingBills api 1');
@@ -735,10 +736,10 @@ const Pledgebook = new PledgebookCls();
                 if(!isActiveUser)
                     throw 'User is Not Active';
 
-                let pledgebookTableName = await Pledgebook.getPledgebookTableName(userId);
-                let pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(userId);
+                let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(userId);
+                let pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(userId);
                 
-                let query = Pledgebook.getQuery('normal', {...params, getAlerts: true}, pledgebookTableName, pledgebookClosedBillTableName);  
+                let query = PledgebookCls.prototype.getQuery('normal', {...params, getAlerts: true}, pledgebookTableName, pledgebookClosedBillTableName);  
                 query = query.replace(/REPLACE_USERID/g, userId);
                 let promise1 = new Promise((resolve, reject) => {
                     db.query(query, queryValues, (err, result) => {
@@ -747,14 +748,14 @@ const Pledgebook = new PledgebookCls();
                             reject(err);
                         } else {
                             if(params.totals_only) 
-                                result = Pledgebook._calculateTotals(result, params.filters);
+                                result = PledgebookCls.prototype._calculateTotals(result, params.filters);
                             resolve(result);
                         }
                     });
                 });
 
 
-                let countQuery = Pledgebook.getQuery('countQuery', params, pledgebookTableName, pledgebookClosedBillTableName); 
+                let countQuery = PledgebookCls.prototype.getQuery('countQuery', params, pledgebookTableName, pledgebookClosedBillTableName); 
                 countQuery = countQuery.replace(/REPLACE_USERID/g, userId);           
                 let promise2 = new Promise((resolve, reject) => {
                     db.query(countQuery, queryValues, (err, result) => {
@@ -800,7 +801,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook._calculateTotals = (billsList, filters) => {
+    PledgebookCls.prototype._calculateTotals = (billsList, filters) => {
         let amount = 0;
         let intVal= 0;
         let totalWeight = 0.00;
@@ -821,7 +822,7 @@ const Pledgebook = new PledgebookCls();
         return {amount, intVal, totalWeight, totalRecords};
     }
 
-    Pledgebook.redeemPendingBillAPIHandler = async (data) => {
+    PledgebookCls.prototype.redeemPendingBillAPIHandler = async (data) => {
         try {
             let params = {
                 data: data.requestParams
@@ -830,13 +831,13 @@ const Pledgebook = new PledgebookCls();
             if(!params.accessToken)
                 throw 'Access Token is missing';
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-            params._pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(params._userId);
+            params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+            params._pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(params._userId);
             params._status = 0;
             if(data.requestParams[0].isRenewal) {
-                await Pledgebook.updatePledgebookBillDetails(params);
+                await PledgebookCls.prototype.updatePledgebookBillDetails(params);
             } else {
-                await Pledgebook.updatePledgebookBillStatus(params);
+                await PledgebookCls.prototype.updatePledgebookBillStatus(params);
             }
             
             FundTransaction.prototype.add(params, 'redeem');
@@ -847,16 +848,16 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook.updatePledgebookBillStatus = (params) => {
+    PledgebookCls.prototype.updatePledgebookBillStatus = (params) => {
         return new Promise( (resolve, reject) => {
-            let query = Pledgebook.getQuery('redeem-status-update', params, params._pledgebookTableName);
+            let query = PledgebookCls.prototype.getQuery('redeem-status-update', params, params._pledgebookTableName);
             db.query(query, async (err, result) => {
                 if (err) {
                     console.log(err);
                     return reject(err);
                 } else {
                     if(result.affectedRows > 0) {
-                        await Pledgebook._insertRowInClosedBillList(params);
+                        await PledgebookCls.prototype._insertRowInClosedBillList(params);
                         return resolve(true);
                     } else {
                         return reject({msg: 'Not Inserted record in bill closing table'});
@@ -866,16 +867,16 @@ const Pledgebook = new PledgebookCls();
         });        
     }
 
-    Pledgebook.updatePledgebookBillDetails = (params) => {
+    PledgebookCls.prototype.updatePledgebookBillDetails = (params) => {
         return new Promise( (resolve, reject) => {
-            let query = Pledgebook.getQuery('renewal-details-update', params, params._pledgebookTableName);
+            let query = PledgebookCls.prototype.getQuery('renewal-details-update', params, params._pledgebookTableName);
             db.query(query, async (err, result) => {
                 if (err) {
                     console.log(err);
                     return reject(err);
                 } else {
                     if(result.affectedRows > 0) {
-                        await Pledgebook._insertRowInClosedBillList(params);
+                        await PledgebookCls.prototype._insertRowInClosedBillList(params);
                         return resolve(true);
                     } else {
                         return reject({msg: 'Not Inserted record in bill closing table'});
@@ -885,7 +886,7 @@ const Pledgebook = new PledgebookCls();
         });        
     }
 
-    Pledgebook._insertRowInClosedBillList = (params) => {
+    PledgebookCls.prototype._insertRowInClosedBillList = (params) => {
         return new Promise( (resolve, reject) => {
             /*let dbInputValues = [];
             for(let i=0; i<params.data.length; i++) {
@@ -895,7 +896,7 @@ const Pledgebook = new PledgebookCls();
                     aRowObj.interestValue, aRowObj.estimatedAmount, aRowObj.discountValue, aRowObj.paidAmount,
                     aRowObj.handedTo);
             } */           
-            let query = Pledgebook.getQuery('redeem-insert', params, params._pledgebookClosedBillTableName); 
+            let query = PledgebookCls.prototype.getQuery('redeem-insert', params, params._pledgebookClosedBillTableName); 
             db.query(query, (err, result) => {
                 if(err) {
                     console.log('ERROR in inserting rec in closingTableList===');
@@ -912,17 +913,17 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.reOpenBill = (params) => {
+    PledgebookCls.prototype.reOpenBill = (params) => {
         return new Promise( (resolve, reject) => {
-            let query = Pledgebook.getQuery('reopen-status-update', params, params._pledgebookTableName);
-            
+            let query = PledgebookCls.prototype.getQuery('reopen-status-update', params, params._pledgebookTableName);
+
             db.query(query, async (err, result) => {
                 if (err) {
                     return reject(err);
                 } else {
                     if(result.affectedRows > 0) {
                         FundTransaction.prototype.removeEntry(params, 'redeem');
-                        let query = Pledgebook.getQuery('reopen-bill', params, params._pledgebookClosedBillTableName);
+                        let query = PledgebookCls.prototype.getQuery('reopen-bill', params, params._pledgebookClosedBillTableName);
                         db.query(query, (err, result) => {
                             if(err) {
                                 return reject(err);
@@ -941,17 +942,17 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.getPledgebookTableName = async (userId) => {
+    PledgebookCls.prototype.getPledgebookTableName = async (userId) => {
         let tableName = appConfig.get('pledgebookTableName')+ '_' + userId;
         return tableName;
     }
 
-    Pledgebook.getPledgebookClosedTableName = async (userId) => {
+    PledgebookCls.prototype.getPledgebookClosedTableName = async (userId) => {
         let tableName = appConfig.get('pledgebookClosedBillListTableName')+ '_' + userId;
         return tableName;
     }
 
-    Pledgebook.getQuery = (queryIdentifier, params, pledgebookTableName, pledgebookClosedBillTableName) => {
+    PledgebookCls.prototype.getQuery = (queryIdentifier, params, pledgebookTableName, pledgebookClosedBillTableName) => {
         let query = '';
         switch(queryIdentifier) {
             case 'insert':
@@ -1038,7 +1039,7 @@ const Pledgebook = new PledgebookCls();
                                 fund_accounts ON fund_transactions_REPLACE_USERID.account_id = fund_accounts.id
                                 `;
                 
-                query = Pledgebook.appendFilters(params, query, pledgebookTableName, pledgebookClosedBillTableName, queryIdentifier);
+                query = PledgebookCls.prototype.appendFilters(params, query, pledgebookTableName, pledgebookClosedBillTableName, queryIdentifier);
                 
                 // if(params.filters.include && params.filters.include == 'closed')
                 //     query += ` ORDER BY uid DESC`;
@@ -1069,7 +1070,7 @@ const Pledgebook = new PledgebookCls();
                             image ON customer_REPLACE_USERID.ImageId = image.Id
                                 LEFT JOIN
                             ${pledgebookClosedBillTableName} ON ${pledgebookClosedBillTableName}.pledgebook_uid = ${pledgebookTableName}.UniqueIdentifier`;
-                query = Pledgebook.appendFilters(params, query, pledgebookTableName, pledgebookClosedBillTableName, queryIdentifier);
+                query = PledgebookCls.prototype.appendFilters(params, query, pledgebookTableName, pledgebookClosedBillTableName, queryIdentifier);
                 break;
             case 'byCustomerId':
                 query = `SELECT                         
@@ -1248,7 +1249,7 @@ const Pledgebook = new PledgebookCls();
         return query;
     }
 
-    Pledgebook.appendFilters = (params, query, pledgebookTableName, pledgebookClosedBillTableName, identifier) => {
+    PledgebookCls.prototype.appendFilters = (params, query, pledgebookTableName, pledgebookClosedBillTableName, identifier) => {
         let filterQueries = [];
         if(params.filters) {
             if(params.filters.billNo)
@@ -1315,7 +1316,7 @@ const Pledgebook = new PledgebookCls();
         return query;
     }
 
-    Pledgebook.parseInputData = (params = {}) => {
+    PledgebookCls.prototype.parseInputData = (params = {}) => {
         let parsedArg = JSON.parse(JSON.stringify(params));
         let billNo = params.billNo;
         if(params.billSeries !== "")
@@ -1332,7 +1333,7 @@ const Pledgebook = new PledgebookCls();
         return parsedArg;
     }
 
-    Pledgebook.parseInputDataForUpdate = (params = {}) => {
+    PledgebookCls.prototype.parseInputDataForUpdate = (params = {}) => {
         let parsedArg = JSON.parse(JSON.stringify(params));
         let billNo = params.billNo;
         if(params.billSeries !== "")
@@ -1347,7 +1348,7 @@ const Pledgebook = new PledgebookCls();
         return parsedArg;
     }
 
-    Pledgebook.doValidation = (params, pledgebookTableName) => {
+    PledgebookCls.prototype.doValidation = (params, pledgebookTableName) => {
         return new Promise( async (resolve, reject) => {
             let userId = params._userId
             let returnVal = {
@@ -1360,7 +1361,7 @@ const Pledgebook = new PledgebookCls();
             }
             try{
                 if(params.billNo) {
-                    let isAlreadyExist = await Pledgebook._isBillNoAlreadyExist(userId, params.billNoWithSeries, pledgebookTableName);
+                    let isAlreadyExist = await PledgebookCls.prototype._isBillNoAlreadyExist(userId, params.billNoWithSeries, pledgebookTableName);
                     if(isAlreadyExist)
                         insertError('Bill Number already Exists');
                 } else {
@@ -1374,9 +1375,9 @@ const Pledgebook = new PledgebookCls();
         });        
     }
 
-    Pledgebook._isBillNoAlreadyExist = (userId, billNoWithSeries, pledgebookTableName) => {
+    PledgebookCls.prototype._isBillNoAlreadyExist = (userId, billNoWithSeries, pledgebookTableName) => {
         return new Promise( (resolve, reject) => {
-            let query = Pledgebook.getQuery('billAlreadyExist', {}, pledgebookTableName);
+            let query = PledgebookCls.prototype.getQuery('billAlreadyExist', {}, pledgebookTableName);
             db.query(query, [billNoWithSeries], (err, result) => {
                 if(err) {
                     reject(err);
@@ -1390,21 +1391,21 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.getPendingBillNosAPIHandler = async (accessToken, cb) => {
+    PledgebookCls.prototype.getPendingBillNosAPIHandler = async (accessToken, cb) => {
         try {            
             if(!accessToken)
                 throw 'Access Token is missing';
-            let list = await Pledgebook._getPendingBillNumbers(accessToken);
+            let list = await PledgebookCls.prototype._getPendingBillNumbers(accessToken);
             return {STATUS: 'SUCCESS', list};
         } catch(e) {
             return { STATUS: 'ERROR', MESSAGE: e}
         }
     }
-    Pledgebook._getPendingBillNumbers = (accessToken) => {
+    PledgebookCls.prototype._getPendingBillNumbers = (accessToken) => {
         return new Promise( async (resolve, reject) => {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(_userId);
-            let query = Pledgebook.getQuery('pendingBillNumbers', {}, pledgebookTableName);
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(_userId);
+            let query = PledgebookCls.prototype.getQuery('pendingBillNumbers', {}, pledgebookTableName);
             db.query(query, (err, result) => {
                 if(err) {
                     reject(err);
@@ -1419,18 +1420,18 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.getBillDetailsAPIHandler = async (accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns, cb) => {
+    PledgebookCls.prototype.getBillDetailsAPIHandler = async (accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns, cb) => {
         try {            
             if(!accessToken)
                 throw 'Access Token is missing';
-            let billDetails = await Pledgebook._getBillDetails(accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns);
+            let billDetails = await PledgebookCls.prototype._getBillDetails(accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns);
             return {STATUS: 'SUCCESS', billDetails};
         } catch(e) {
             return { STATUS: 'ERROR', MESSAGE: e}
         }
     }
 
-    Pledgebook._getBillDetails = (accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns) => {
+    PledgebookCls.prototype._getBillDetails = (accessToken, billNoWithUUIDArray, fetchOnlyPending, fetchFundTrns) => {
         return new Promise ( async (resolve, reject) => {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
             let res;
@@ -1439,8 +1440,8 @@ const Pledgebook = new PledgebookCls();
                 FundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
             }
             let billNoArray = billNoWithUUIDArray.map((anObj) => anObj.billNo);
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(_userId);
-            let query = Pledgebook.getQuery('billDetails', billNoArray, pledgebookTableName);
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(_userId);
+            let query = PledgebookCls.prototype.getQuery('billDetails', billNoArray, pledgebookTableName);
             if(fetchOnlyPending)
                 query +=` AND STATUS=1`;
             query = query.replace(/REPLACE_USERID/g, _userId);
@@ -1461,7 +1462,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.reOpenClosedBillsAPIHandler = async (data) => {
+    PledgebookCls.prototype.reOpenClosedBillsAPIHandler = async (data) => {
         try {
             let params = {
                 data: data.requestParams
@@ -1470,31 +1471,31 @@ const Pledgebook = new PledgebookCls();
             if(!params.accessToken)
                 throw 'Access Token is missing';
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-            params._pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(params._userId);
+            params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+            params._pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(params._userId);
             params._status = 1;
-            await Pledgebook.reOpenBill(params);
+            await PledgebookCls.prototype.reOpenBill(params);
             return {STATUS: 'success', RESPONSE: {}, STATUS_MSG: ''};
         } catch(e) {
             return {STATUS: 'error', ERROR: e, MESSAGE: (e?e.message:'')};
         }
     }
 
-    Pledgebook.fetchUserHistoryAPIHandler = async (accessToken, customerId, include_only, filters, cb) => {
+    PledgebookCls.prototype.fetchUserHistoryAPIHandler = async (accessToken, customerId, include_only, filters, cb) => {
         try {
-            let billList = await Pledgebook.fetchHistory({accessToken: accessToken, customerId: customerId, includeOnly: include_only, filters});
+            let billList = await PledgebookCls.prototype.fetchHistory({accessToken: accessToken, customerId: customerId, includeOnly: include_only, filters});
             return {STATUS: 'success', RESPONSE: billList, STATUS_MSG: ''};
         } catch(e) {
             return {STATUS: 'error', ERROR: e, MESSAGE: (e?e.message:'')};
         }
     }
 
-    Pledgebook.fetchHistory = (data) => {        
+    PledgebookCls.prototype.fetchHistory = (data) => {        
         return new Promise( async (resolve, reject) => {
             data._userId = await utils.getStoreOwnerUserId(data.accessToken);
-            data._pledgebookTableName = await Pledgebook.getPledgebookTableName(data._userId);
-            data._pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(data._userId);
-            let query = Pledgebook.getQuery('byCustomerId', data, data._pledgebookTableName, data._pledgebookClosedBillTableName);
+            data._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(data._userId);
+            data._pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(data._userId);
+            let query = PledgebookCls.prototype.getQuery('byCustomerId', data, data._pledgebookTableName, data._pledgebookClosedBillTableName);
             query = query.replace(/REPLACE_USERID/g, data._userId); 
             db.query(query, [data.customerId], (err, result) => {
                 if(err) {
@@ -1510,15 +1511,15 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.updateBillAPIHandler = async (data) => {
+    PledgebookCls.prototype.updateBillAPIHandler = async (data) => {
         try {
             let params = data.requestParams;
             params.accessToken = data.accessToken;
             if(!params.accessToken)
                 throw 'Access Token is missing';
-            let parsedArg = Pledgebook.parseInputDataForUpdate(params);            
+            let parsedArg = PledgebookCls.prototype.parseInputDataForUpdate(params);            
             parsedArg._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(parsedArg._userId);                        
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(parsedArg._userId);                        
             parsedArg.ornPicture.id = parsedArg.ornPicture?parsedArg.ornPicture.imageId:null;
             let customerObj = await Customer.handleCustomerData(parsedArg); //Save customer information in Customer Table
             parsedArg.customerId = customerObj.customerId;
@@ -1556,7 +1557,7 @@ const Pledgebook = new PledgebookCls();
             //         parsedArg.billRemarks += ` Other Mobile: ${parsedArg.mobile}`;
             // };
 
-            await Pledgebook.updateBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook                
+            await PledgebookCls.prototype.updateBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook                
             FundTransaction.prototype.update({parsedArg, pledgebookTableName}, 'pledgebook');
             return {STATUS: 'SUCCESS', STATUS_MSG: 'Successfully Updated the bill'};
         } catch(e) {
@@ -1564,9 +1565,9 @@ const Pledgebook = new PledgebookCls();
         }        
     }
 
-    Pledgebook.updateBillDetails = (parsedArg, pledgebookTableName) => {
+    PledgebookCls.prototype.updateBillDetails = (parsedArg, pledgebookTableName) => {
         return new Promise( (resolve, reject) => {
-            let sql = Pledgebook.getQuery('update-bill', parsedArg, pledgebookTableName);
+            let sql = PledgebookCls.prototype.getQuery('update-bill', parsedArg, pledgebookTableName);
             let values = [
                 parsedArg.billNoWithSeries,
                 parsedArg.amount,
@@ -1602,16 +1603,16 @@ const Pledgebook = new PledgebookCls();
         });        
     }
 
-    Pledgebook.exportAPIHandler = async (accessToken, params, res, cb) => {
+    PledgebookCls.prototype.exportAPIHandler = async (accessToken, params, res, cb) => {
         try {
-            let pledgebook = await Pledgebook.getPledgebookData(accessToken, params);
-            let exportDataJSON = Pledgebook._constructExportDataJSON(pledgebook);
-            let csvStr = Pledgebook._convertToCsvString(exportDataJSON);
+            let pledgebook = await PledgebookCls.prototype.getPledgebookData(accessToken, params);
+            let exportDataJSON = PledgebookCls.prototype._constructExportDataJSON(pledgebook);
+            let csvStr = PledgebookCls.prototype._convertToCsvString(exportDataJSON);
             let fileLocation = utils.getCsvStorePath();
-            let status = await Pledgebook._writeCSVfile(exportDataJSON, fileLocation);
-            res.download(fileLocation, 'pledgebook.csv');
+            let status = await PledgebookCls.prototype._writeCSVfile(exportDataJSON, fileLocation);
+            res.download(fileLocation, 'PledgebookCls.csv');
 
-            //let updatedResponse = Pledgebook._setResponseHeaders(res);
+            //let updatedResponse = PledgebookCls._setResponseHeaders(res);
             //updatedResponse.download(csvStr);                                        
 
             // let filePath = path.join('../../client/csvfiles','file.csv');
@@ -1632,7 +1633,7 @@ const Pledgebook = new PledgebookCls();
     }
 
     
-    /*Pledgebook.afterRemote('exportAPIHandler', (ctx, results, next) => {
+    /*PledgebookCls.afterRemote('exportAPIHandler', (ctx, results, next) => {
         var options = {
             root: 'client/csvfiles',
             headers: {
@@ -1654,14 +1655,14 @@ const Pledgebook = new PledgebookCls();
     });*/
     
 
-    Pledgebook.getPledgebookData = (accessToken, params) => {
+    PledgebookCls.prototype.getPledgebookData = (accessToken, params) => {
         return new Promise( async (resolve, reject) => {
             let queryValues = [(params.offsetEnd - params.offsetStart), params.offsetStart];
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(userId);
-            let pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(userId);
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(userId);
+            let pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(userId);
             
-            let query = Pledgebook.getQuery('normal', params, pledgebookTableName, pledgebookClosedBillTableName);
+            let query = PledgebookCls.prototype.getQuery('normal', params, pledgebookTableName, pledgebookClosedBillTableName);
             query = query.replace(/REPLACE_USERID/g, userId);
             db.query(query, queryValues, (err, result) => {
                 if(err) {
@@ -1672,7 +1673,7 @@ const Pledgebook = new PledgebookCls();
             });
         });        
     }
-    Pledgebook._constructExportDataJSON = (rawData) => {
+    PledgebookCls.prototype._constructExportDataJSON = (rawData) => {
         let mainBucket = [];
         let pendingBillsBucket = [];
         let closedBillsBucket = [];
@@ -1684,8 +1685,8 @@ const Pledgebook = new PledgebookCls();
                 Name: aRec.Name,
                 GaurdianName: aRec.GaurdianName,
                 NameFull: `${aRec.Name}`,
-                OrnWithWt: Pledgebook._constructOrnString(aRec.Orn, true),
-                Orn: Pledgebook._constructOrnString(aRec.Orn, false),
+                OrnWithWt: PledgebookCls.prototype._constructOrnString(aRec.Orn, true),
+                Orn: PledgebookCls.prototype._constructOrnString(aRec.Orn, false),
                 TotalWeight: aRec.TotalWeight || 0,
                 Status: (aRec.Status)?'PENDING':'CLOSED',
                 Address: aRec.Address,
@@ -1726,7 +1727,7 @@ const Pledgebook = new PledgebookCls();
         return mainBucket;
     }
 
-    Pledgebook._constructOrnString = (jsonStr, withWt) => {
+    PledgebookCls.prototype._constructOrnString = (jsonStr, withWt) => {
         let ornStr = '';
         if(jsonStr) {
             let jsonObj;
@@ -1750,7 +1751,7 @@ const Pledgebook = new PledgebookCls();
     }    
 
     
-    Pledgebook._writeCSVfile = (jsonData, fileLocation) => {
+    PledgebookCls.prototype._writeCSVfile = (jsonData, fileLocation) => {
         return new Promise( (resolve, reject) => {
             const csvWriter = createCsvWriter({
                 path: fileLocation,
@@ -1797,7 +1798,7 @@ const Pledgebook = new PledgebookCls();
     }
     
 
-    Pledgebook._convertToCsvString = (json) => {
+    PledgebookCls.prototype._convertToCsvString = (json) => {
         const csvStringifier = createCsvStringifier({
             header: [
                 {id: 'Date', title: 'Date'},
@@ -1825,7 +1826,7 @@ const Pledgebook = new PledgebookCls();
         return csvStr;
     }
 
-    Pledgebook._setResponseHeaders = (res) => {
+    PledgebookCls.prototype._setResponseHeaders = (res) => {
         var datetime = +new Date();
         let expiry = datetime + 200000; //extnding the timestamp by around 2minutes
         let expirtyDateString = new Date(expiry).toGMTString();
@@ -1835,15 +1836,15 @@ const Pledgebook = new PledgebookCls();
         res.set('Content-Type','application/force-download');
         res.set('Content-Type','application/octet-stream');
         res.set('Content-Type','application/download');
-        res.set('Content-Disposition','attachment;filename=pledgebook.csv');
+        res.set('Content-Disposition','attachment;filename=PledgebookCls.csv');
         res.set('Content-Transfer-Encoding','binary');
         return res;
     }
 
-    Pledgebook._getPendingBillsList = (custId, userId) => {
+    PledgebookCls.prototype._getPendingBillsList = (custId, userId) => {
         return new Promise( async (resolve, reject) => {
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(userId);
-            db.query(Pledgebook.getQuery('pending-bill-list', {custId: custId}, pledgebookTableName), (err, res) => {
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(userId);
+            db.query(PledgebookCls.prototype.getQuery('pending-bill-list', {custId: custId}, pledgebookTableName), (err, res) => {
                 if(err) {
                     reject(err);
                 } else {
@@ -1854,14 +1855,14 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.archiveBillsApiHandler = async (params) => {
+    PledgebookCls.prototype.archiveBillsApiHandler = async (params) => {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-                await Pledgebook._archiveBills(params);
+                params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+                await PledgebookCls.prototype._archiveBills(params);
             } else {
                 throw 'No bills selected for archiving';
             }
@@ -1871,7 +1872,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._archiveBills = (data) => {
+    PledgebookCls.prototype._archiveBills = (data) => {
         return new Promise((resolve, reject) => {
             let sql = `UPDATE ${data._pledgebookTableName} SET Archived=1 WHERE UniqueIdentifier IN (${data.uniqueIdentifiers.join(',')});`;
             db.query(sql, (err, res) => {
@@ -1884,14 +1885,14 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.unArchiveBillsApiHandler = async (params) => {
+    PledgebookCls.prototype.unArchiveBillsApiHandler = async (params) => {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-                await Pledgebook._unArchiveBills(params);
+                params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+                await PledgebookCls.prototype._unArchiveBills(params);
             } else {
                 throw 'No bills selected for unaArchiving';
             }
@@ -1901,7 +1902,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._unArchiveBills = (data) => {
+    PledgebookCls.prototype._unArchiveBills = (data) => {
         return new Promise((resolve, reject) => {
             let sql = `UPDATE ${data._pledgebookTableName} SET Archived=0 WHERE UniqueIdentifier IN (${data.uniqueIdentifiers.join(',')});`;
             db.query(sql, (err, res) => {
@@ -1914,14 +1915,14 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.trashBillsApiHandler = async (params) => {
+    PledgebookCls.prototype.trashBillsApiHandler = async (params) => {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-                await Pledgebook._trashBills(params);
+                params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+                await PledgebookCls.prototype._trashBills(params);
             } else {
                 throw 'No bills selected for Trash';
             }
@@ -1931,7 +1932,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._trashBills = (data) => {
+    PledgebookCls.prototype._trashBills = (data) => {
         return new Promise((resolve, reject) => {
             let sql = `UPDATE ${data._pledgebookTableName} SET Trashed=1 WHERE UniqueIdentifier IN (${data.uniqueIdentifiers.join(',')});`;
             db.query(sql, (err, res) => {
@@ -1944,14 +1945,14 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.restoreTrashedBillsApiHandler = async (params) => {
+    PledgebookCls.prototype.restoreTrashedBillsApiHandler = async (params) => {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-                await Pledgebook._restoreBills(params);
+                params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+                await PledgebookCls.prototype._restoreBills(params);
             } else {
                 throw 'No bills selected for Trash';
             }
@@ -1961,7 +1962,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._restoreBills = (data) => {
+    PledgebookCls.prototype._restoreBills = (data) => {
         return new Promise((resolve, reject) => {
             let sql = `UPDATE ${data._pledgebookTableName} SET Trashed=0 WHERE UniqueIdentifier IN (${data.uniqueIdentifiers.join(',')});`;
             db.query(sql, (err, res) => {
@@ -1974,19 +1975,19 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.deleteBillApiHandler = async (params) => {
+    PledgebookCls.prototype.deleteBillApiHandler = async (params) => {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await Pledgebook.getPledgebookTableName(params._userId);
-                params._pledgebookClosedBillTableName = await Pledgebook.getPledgebookClosedTableName(params._userId);
+                params._pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(params._userId);
+                params._pledgebookClosedBillTableName = await PledgebookCls.prototype.getPledgebookClosedTableName(params._userId);
 
-                await Pledgebook._copyToRecycleBinTable(params);
-                await Pledgebook._copyClosedBillsToRecycleBinTable(params);
-                await Pledgebook._deleteBillsInClosedPledgebook(params);
-                await Pledgebook._deleteBillsInPledgebook(params);
+                await PledgebookCls.prototype._copyToRecycleBinTable(params);
+                await PledgebookCls.prototype._copyClosedBillsToRecycleBinTable(params);
+                await PledgebookCls.prototype._deleteBillsInClosedPledgebook(params);
+                await PledgebookCls.prototype._deleteBillsInPledgebook(params);
             } else {
                 throw 'No bills selected for deleting';
             }
@@ -1997,7 +1998,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._copyToRecycleBinTable = (params) => {
+    PledgebookCls.prototype._copyToRecycleBinTable = (params) => {
         return new Promise( (resolve, reject) => {
             let sql = SQL.MOVE_PLEDGEBOOK_BILLS_TO_BIN;
             sql = sql.replace(/REPLACE_USER_ID/g, params._userId);
@@ -2015,7 +2016,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook._copyClosedBillsToRecycleBinTable = (params) => {
+    PledgebookCls.prototype._copyClosedBillsToRecycleBinTable = (params) => {
         return new Promise( (resolve, reject) => {
             let sql = SQL.MOVE_CLOSED_BILLS_TO_BIN;
             sql = sql.replace(/REPLACE_USER_ID/g, params._userId);
@@ -2033,7 +2034,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook._deleteBillsInPledgebook = (params) => {
+    PledgebookCls.prototype._deleteBillsInPledgebook = (params) => {
         return new Promise((resolve, reject) => {
             let sql = `DELETE FROM ${params._pledgebookTableName} WHERE UniqueIdentifier IN (?) AND Trashed=1`;
             db.query(sql, [params.uniqueIdentifiers], (err, res) => {
@@ -2046,7 +2047,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
     
-    Pledgebook._deleteBillsInClosedPledgebook = (params) => {
+    PledgebookCls.prototype._deleteBillsInClosedPledgebook = (params) => {
         return new Promise((resolve, reject) => {
             let sql = `DELETE FROM ${params._pledgebookClosedBillTableName} WHERE pledgebook_uid IN (?)`;
             db.query(sql, [params.uniqueIdentifiers], (err, res) => {
@@ -2059,7 +2060,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.billRenewalApiHandler = async (accessToken, payload) => {
+    PledgebookCls.prototype.billRenewalApiHandler = async (accessToken, payload) => {
         try {
             //validate payment arguments
             // if(!payload.paymentDetails)
@@ -2083,19 +2084,19 @@ const Pledgebook = new PledgebookCls();
             
 
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await Pledgebook.getPledgebookTableName(_userId);
-            let rawPledgebookRecord = await Pledgebook._getRawPledgebookBillFromDB(pledgebookTableName, payload.redeemParams.pledgeBookUID);
+            let pledgebookTableName = await PledgebookCls.prototype.getPledgebookTableName(_userId);
+            let rawPledgebookRecord = await PledgebookCls.prototype._getRawPledgebookBillFromDB(pledgebookTableName, payload.redeemParams.pledgeBookUID);
             if(!rawPledgebookRecord)
                 throw `Loan Bill ${payload.newBillParams.billSeries} ${payload.newBillParams.billNo} Not found in DB`;
 
             //Redeem the Bill
-            let res = await Pledgebook.redeemPendingBillAPIHandler({_userId, requestParams: [payload.redeemParams], accessToken});
+            let res = await PledgebookCls.prototype.redeemPendingBillAPIHandler({_userId, requestParams: [payload.redeemParams], accessToken});
             if(res.STATUS == 'error')
                 throw `Error while closing the bill`;
 
             // Insert in Pledgebook Table
-            let params = Pledgebook._constructRenewBillPayload(rawPledgebookRecord, payload.newBillParams);
-            await Pledgebook.saveBillDetails(params, pledgebookTableName);
+            let params = PledgebookCls.prototype._constructRenewBillPayload(rawPledgebookRecord, payload.newBillParams);
+            await PledgebookCls.prototype.saveBillDetails(params, pledgebookTableName);
 
             //Update PledgebookSettings table for LastBillNo
             await Pledgebooksettings.updateLastBillDetail(params);
@@ -2112,7 +2113,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._getRawPledgebookBillFromDB = (pledgebookTableName, pledgebookUID) => {
+    PledgebookCls.prototype._getRawPledgebookBillFromDB = (pledgebookTableName, pledgebookUID) => {
         return new Promise(async (resolve, reject) => {
             let theQuery = SQL.RAW_PLEDGEBOOK_RECORD.replace(/PLEDGEBOOK_TABLE_NAME/g, pledgebookTableName);
             db.query(theQuery, [pledgebookUID], (err, res) => {
@@ -2126,7 +2127,7 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook._constructRenewBillPayload = (existingBillFromDB, newBillParams) => {
+    PledgebookCls.prototype._constructRenewBillPayload = (existingBillFromDB, newBillParams) => {
         let billNoWithSeries = newBillParams.billNo;
         if(newBillParams.billSeries) billNoWithSeries = newBillParams.billSeries+"."+newBillParams.billNo;
         let params = {
@@ -2157,11 +2158,11 @@ const Pledgebook = new PledgebookCls();
         return params;
     }
 
-    Pledgebook.fetchAnalyticsData = async (accessToken, groupBy, visualizationKey, topCustomerMetric, startDate, endDate) => {
+    PledgebookCls.prototype.fetchAnalyticsData = async (accessToken, groupBy, visualizationKey, topCustomerMetric, startDate, endDate) => {
         try {
             let _userId = await utils.getStoreOwnerUserId(accessToken, groupBy);
             if(!['date', 'month', 'year'].includes(groupBy)) throw 'Invalid Group by value. Should be either MONTH or YEAR. REceived: '+ groupBy;
-            let obj = await Pledgebook._fetchAnalyticsDataDB(_userId, groupBy, visualizationKey, topCustomerMetric, startDate, endDate);
+            let obj = await PledgebookCls.prototype._fetchAnalyticsDataDB(_userId, groupBy, visualizationKey, topCustomerMetric, startDate, endDate);
             return {STATUS: 'success', RESPONSE: obj, STATUS_MSG: ''};
         } catch(e) {
             console.log(e);
@@ -2169,12 +2170,12 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._fetchAnalyticsDataDB = async (_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed) => {
+    PledgebookCls.prototype._fetchAnalyticsDataDB = async (_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed) => {
         try {
             let responses = await Promise.all([
-                // Pledgebook._fetchCustomerWiseData(_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed),
-                // Pledgebook._fetchCustomerWiseData(_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed, {getAllBills: true}),
-                Pledgebook._fetchBillsCount(_userId, groupBy, visualizationKey, sd, ed)
+                // PledgebookCls.prototype._fetchCustomerWiseData(_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed),
+                // PledgebookCls.prototype._fetchCustomerWiseData(_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed, {getAllBills: true}),
+                PledgebookCls.prototype._fetchBillsCount(_userId, groupBy, visualizationKey, sd, ed)
             ]);
             return {
                 topCustomers: [], //[...responses[0], ...responses[1]],
@@ -2185,7 +2186,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._fetchCustomerWiseData = (_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed, options) => {
+    PledgebookCls.prototype._fetchCustomerWiseData = (_userId, groupBy, visualizationKey, topCustomerMetric, sd, ed, options) => {
         return new Promise((resolve, reject) => {
             options = options || {};
             let theQuery = SQL[`P_B_TOP5_CUSTOMER_BY_${groupBy.toUpperCase()}`].replace(/REPLACE_USERID/g, _userId);
@@ -2225,7 +2226,7 @@ const Pledgebook = new PledgebookCls();
             });
         });
     }
-    Pledgebook._fetchBillsCount = (_userId, groupBy, visualizationKey, sd, ed) => {
+    PledgebookCls.prototype._fetchBillsCount = (_userId, groupBy, visualizationKey, sd, ed) => {
         return new Promise((resolve, reject) => {            
             let theQuery = '';
             if(groupBy == 'date') {
@@ -2272,10 +2273,10 @@ const Pledgebook = new PledgebookCls();
         });
     }
 
-    Pledgebook.fetchAnalyticsDataByCustomerWise = async (accessToken, topCustomerMetric, billStatus, startDate, endDate, limit, offset) => {
+    PledgebookCls.prototype.fetchAnalyticsDataByCustomerWise = async (accessToken, topCustomerMetric, billStatus, startDate, endDate, limit, offset) => {
         try {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let respObj = await Pledgebook._fetchAnalyticsDataByCustomerWise(_userId, topCustomerMetric, billStatus, startDate, endDate, limit, offset);
+            let respObj = await PledgebookCls.prototype._fetchAnalyticsDataByCustomerWise(_userId, topCustomerMetric, billStatus, startDate, endDate, limit, offset);
             return {STATUS: 'success', RESPONSE: respObj, STATUS_MSG: ''};
         } catch(e) {
             console.log(e);
@@ -2283,7 +2284,7 @@ const Pledgebook = new PledgebookCls();
         }
     }
 
-    Pledgebook._fetchAnalyticsDataByCustomerWise = async (_userId, topCustomerMetric, billStatus, sd, ed, limit, offset) => {
+    PledgebookCls.prototype._fetchAnalyticsDataByCustomerWise = async (_userId, topCustomerMetric, billStatus, sd, ed, limit, offset) => {
         try {
             let theQuery = SQL.P_B_BILLS_BY_CUSTOMER.replace(/REPLACE_USERID/g, _userId);
             let orderClause = 'ORDER BY BillsCount DESC';

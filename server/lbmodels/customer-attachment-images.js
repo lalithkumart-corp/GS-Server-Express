@@ -7,18 +7,15 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
-export class CustAttachmentImageCls {
+class CustAttachmentImageCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
 }
 
-export const CustAttachmentImage = new CustAttachmentImageCls();
+export const CustomerAttachmentImage = new CustAttachmentImageCls();
 
-
-
-
-CustAttachmentImage.saveImage = (picture) => {
+CustAttachmentImageCls.prototype.saveImage = (picture) => {
     return new Promise( (resolve, reject) => {
         db.query('INSERT INTO customer_attachment_images (Hashkey, Image, Format, Path, StorageMode, Optional, Caption) VALUES (?,?,?,?,?,?,?)', [
             picture.hashKey,
@@ -43,7 +40,7 @@ CustAttachmentImage.saveImage = (picture) => {
     });        
 }
 
-CustAttachmentImage.getImage = (imageId) => {
+CustAttachmentImageCls.prototype.getImage = (imageId) => {
     return new Promise( (resolve, reject) => {
         db.query('SELECT * FROM customer_attachment_images WHERE Id = ?', [imageId], (err, result) => {
             if(err)
@@ -54,12 +51,12 @@ CustAttachmentImage.getImage = (imageId) => {
     });        
 }
 
-CustAttachmentImage.delImage = (imageRec) => {
+CustAttachmentImageCls.prototype.delImage = (imageRec) => {
     return new Promise( (resolve, reject) => {
-        if(imageRec.storageMode == 'PATH') {
-            fs.unlink(imageRec.path, (error) => {
+        if(imageRec.StorageMode == 'PATH') {
+            fs.unlink(imageRec.Path, (error) => {
                 if (error) return reject(error);
-                db.query('DELETE FROM customer_attachment_images WHERE Id = ?', [imageRec.id], (err, response) => {
+                db.query('DELETE FROM customer_attachment_images WHERE Id = ?', [imageRec.Id], (err, response) => {
                     if(err)
                         return reject(err);
                     else
@@ -67,7 +64,7 @@ CustAttachmentImage.delImage = (imageRec) => {
                 });
             });
         } else {
-            db.query('DELETE FROM customer_attachment_images WHERE Id = ?', [imageRec.id], (err, response) => {
+            db.query('DELETE FROM customer_attachment_images WHERE Id = ?', [imageRec.Id], (err, response) => {
                 if(err)
                     return reject(err);
                 else
