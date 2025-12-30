@@ -119,10 +119,10 @@ const JewelleryTagSettings = new JewelleryTagSettingsCls();
                 let _userId = await utils.getStoreOwnerUserId(accessToken);
                 let records = await db.query(`SELECT * FROM jewellery_tag_settings WHERE user_id = ?`, [_userId]);
                 if(records && records.length > 0) {
-                    await db.query(`UPDATE jewellery_tag_settings SET selected_tag_template_id = ?, store_name_abbr = ? WHERE user_id = ?`, [payload.selectedTemplateId, payload.storeNameAbbr, _userId]);
+                    await db.query(`UPDATE jewellery_tag_settings SET selected_tag_template_id = ?, store_name_abbr = ?, store_name_full = ? WHERE user_id = ?`, [payload.selectedTemplateId, payload.storeNameAbbr, payload.storeNameFull, _userId]);
                     // await JewelleryTagSettingsCls.updateAll({userId: _userId}, {selectedTagId: payload.selectedTemplateId, storeNameAbbr: payload.storeNameAbbr});
                 } else {
-                    await db.query(`INSERT INTO jewellery_tag_settings (user_id, selected_tag_template_id, store_name_abbr) VALUES (?, ?, ?)`, [_userId, payload.selectedTemplateId, payload.storeNameAbbr]);
+                    await db.query(`INSERT INTO jewellery_tag_settings (user_id, selected_tag_template_id, store_name_abbr, store_name_full) VALUES (?, ?, ?, ?)`, [_userId, payload.selectedTemplateId, payload.storeNameAbbr, payload.storeNameFull]);
                 }
                 return resolve(true);
             } catch(e) {
@@ -136,6 +136,7 @@ let SQL = {
     GET_SETTINGS: `SELECT 
                         settings.selected_tag_template_id,
                         settings.store_name_abbr,
+                        settings.store_name_full,
                         settings.customization
                     FROM
                         jewellery_tag_settings settings
