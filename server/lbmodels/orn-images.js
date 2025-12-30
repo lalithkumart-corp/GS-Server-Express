@@ -1,8 +1,7 @@
 'use strict';
 var fs = require('fs');
-let app = require('../server.js');
 let utils = require('../utils/commonUtils');
-
+import express from 'express';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();

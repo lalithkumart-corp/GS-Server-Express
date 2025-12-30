@@ -7,7 +7,7 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
-class LoanBillTemplateCls {
+export class LoanBillTemplateCls {
     constructor() {
 
     }
@@ -15,70 +15,8 @@ class LoanBillTemplateCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-const LoanBillTemplate = new LoanBillTemplateCls();
-
-
-
-// module.exports = function(LoanBillTemplate) {
-    LoanBillTemplateCls.prototype.remoteMethod('getSettingsApi', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/get-settings', verb: 'get'},
-        description: 'Loan Bill Header Setting.',
-    });
-    LoanBillTemplateCls.prototype.remoteMethod('updateSettingsApi', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-settings', verb: 'post'},
-        description: 'Loan Bill Setting.',
-    });
-
-    LoanBillTemplateCls.prototype.remoteMethod('getAvlLoanBillTemplatesApi', {
-        accepts: [],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/fetch-avl-loan-bill-templates', verb: 'get'},
-        description: 'Get ALL avl Loan Bill Templates.',
-    });
-
-    LoanBillTemplateCls.prototype.getSettingsApi = (accessToken, cb) => {
-        LoanBillTemplateCls.prototype._getSettingsApi.call({accessToken: accessToken}).then(
+    getSettingsApi(accessToken, cb) {
+        this._getSettingsApi({ accessToken }).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -92,7 +30,7 @@ const LoanBillTemplate = new LoanBillTemplateCls();
         );
     };
 
-    LoanBillTemplateCls.prototype._getSettingsApi = async (params) => {
+    async _getSettingsApi(params) {
         try {
             if(!params._userId)
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
@@ -116,8 +54,8 @@ const LoanBillTemplate = new LoanBillTemplateCls();
         }
     }
 
-    LoanBillTemplateCls.prototype.updateSettingsApi = (apiParams, cb) => {
-        LoanBillTemplateCls.prototype._updateSettingsApi.call(apiParams).then(
+    updateSettingsApi(apiParams, cb) {
+        this._updateSettingsApi.call(apiParams).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -131,7 +69,7 @@ const LoanBillTemplate = new LoanBillTemplateCls();
         );
     };
 
-    LoanBillTemplateCls.prototype._updateSettingsApi = async (apiParams) => {
+    async _updateSettingsApi(apiParams) {
         try {
             apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
             let records = await db.query(`SELECT * FROM loan_bill_tempate_settings WHERE user_id = ?`, [apiParams._userId]);
@@ -149,8 +87,8 @@ const LoanBillTemplate = new LoanBillTemplateCls();
         }
     };
 
-    LoanBillTemplateCls.prototype.getAvlLoanBillTemplatesApi = (cb) => {
-        LoanBillTemplateCls.prototype._getAvlLoanBillTemplatesApi.call().then(
+    getAvlLoanBillTemplatesApi(cb) {
+        this._getAvlLoanBillTemplatesApi.call().then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -164,7 +102,7 @@ const LoanBillTemplate = new LoanBillTemplateCls();
         );
     };
 
-    LoanBillTemplateCls.prototype._getAvlLoanBillTemplatesApi = () => {
+    _getAvlLoanBillTemplatesApi() {
         return new Promise((resolve, reject) => {
             let sql = 'SELECT * FROM loan_bill_avl_template_list';
             db.query(sql, (err, res) => {
@@ -180,8 +118,66 @@ const LoanBillTemplate = new LoanBillTemplateCls();
             });
         });
     }
-// };
+
+}
+
+export const LoanBillTemplate = new LoanBillTemplateCls();
+
+
+
+LoanBillTemplate.remoteMethod('getSettingsApi', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/get-settings', verb: 'get'},
+    description: 'Loan Bill Header Setting.',
+});
+LoanBillTemplate.remoteMethod('updateSettingsApi', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-settings', verb: 'post'},
+    description: 'Loan Bill Setting.',
+});
+
+LoanBillTemplate.remoteMethod('getAvlLoanBillTemplatesApi', {
+    accepts: [],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/fetch-avl-loan-bill-templates', verb: 'get'},
+    description: 'Get ALL avl Loan Bill Templates.',
+});
 
 export default router;
-export { LoanBillTemplate };
-

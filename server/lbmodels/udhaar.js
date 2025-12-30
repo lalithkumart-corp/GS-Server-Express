@@ -2,6 +2,7 @@
 let _ = require('lodash');
 let utils = require('../utils/commonUtils');
 let dateformat = require('dateformat');
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const UDHAAR_LIST = 'UDHAAR_LIST';
 const UDHAAR_LIST_COUNT = 'UDHAAR_LIST_COUNT';

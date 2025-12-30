@@ -28,7 +28,7 @@ export const Image = new ImageCls();
 
 // module.exports = function(Image) {
 
-    ImageCls.prototype.saveBase64ImageAPI = async (picData) => {
+    Image.saveBase64ImageAPI = async (picData) => {
         let imageStatus = {STATUS: 'SUCCESS'};
         try {
             let picture;
@@ -76,7 +76,7 @@ export const Image = new ImageCls();
         }
     }
 
-    ImageCls.prototype.remoteMethod('saveBase64ImageAPI', {
+    Image.remoteMethod('saveBase64ImageAPI', {
         accepts: {
             arg: 'picData',
             type: 'object',
@@ -98,7 +98,7 @@ export const Image = new ImageCls();
         description: 'Save Image and Get ID'
     });
 
-    ImageCls.prototype.saveBinaryImageAPI = async (data, req, res) => {
+    Image.saveBinaryImageAPI = async (data, req, res) => {
         let imageStatus = {STATUS: 'SUCCESS'};
         try {
             let uploadedDetail = await Image.upload(req, res);
@@ -144,7 +144,7 @@ export const Image = new ImageCls();
         }
     }
 
-    ImageCls.prototype.remoteMethod('saveBinaryImageAPI', {
+    Image.remoteMethod('saveBinaryImageAPI', {
         accepts:
             [{
                 arg: 'data',
@@ -175,7 +175,7 @@ export const Image = new ImageCls();
         description: 'Save Image and Get ID'
     });
 
-    Image.prototype.deleteByIdAPI = async (data) => {
+    Image.deleteByIdAPI = async (data) => {
         let execStatus = {STATUS: 'SUCCESS'};
         try {
             let imageRec;
@@ -198,7 +198,7 @@ export const Image = new ImageCls();
         }
     }
 
-    ImageCls.prototype.remoteMethod('deleteByIdAPI', {
+    Image.remoteMethod('deleteByIdAPI', {
         accepts: {
             arg: 'data',
             type: 'object',
@@ -244,7 +244,7 @@ export const Image = new ImageCls();
         }
     }*/
 
-    ImageCls.prototype.upload = (req, res) => {
+    Image.upload = (req, res) => {
         return new Promise( (resolve, reject) => {
             // SOURCE: https://github.com/santhosharuchamy/loopback-file-upload/blob/90a7ac8ece/Loopback%20custom%20fileupload.js
             let serverFile = { localFile: '', originalName: '', mimeType: '' };
@@ -279,7 +279,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.writeImgFromBase64 = (picData) => {
+    Image.writeImgFromBase64 = (picData) => {
         return new Promise( (resolve, reject) => {
             let fileName = Date.now() + '.png';
             let dirPath = utils.getPictureUploadPath();
@@ -295,7 +295,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.getImage = (imageId) => {
+    Image.getImage = (imageId) => {
         return new Promise( (resolve, reject) => {
             db.query('SELECT * FROM image WHERE Id = ?', [imageId], (err, result) => {
             // Image.findById(imageId, (err, result) => {
@@ -307,7 +307,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.delImage = (imageRec) => {
+    Image.delImage = (imageRec) => {
         return new Promise( (resolve, reject) => {
             if(imageRec.storageMode == 'PATH') {
                 fs.unlink(imageRec.path, (error) => {
@@ -331,7 +331,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.checkIfAlreadyExists = (hashKey) => {
+    Image.checkIfAlreadyExists = (hashKey) => {
         return new Promise( (resolve, reject) => {
             db.query('SELECT * FROM image WHERE HashKey = ?', [hashKey], (err, result) => {
                 if(err) {
@@ -347,7 +347,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.saveImage = (picture) => {
+    Image.saveImage = (picture) => {
         return new Promise( (resolve, reject) => {
             db.query('INSERT INTO image (HashKey, Image, Format, Path, StorageMode, Optional) VALUES (?,?,?,?,?,?)', [
                 picture.hashKey,
@@ -371,7 +371,7 @@ export const Image = new ImageCls();
         });
     }
 
-    ImageCls.prototype.generateHashKey = (params) => {
+    Image.generateHashKey = (params) => {
         let hashKey = sh.unique(params.value + params.format);
         return hashKey;
     }

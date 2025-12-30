@@ -2,7 +2,7 @@
 import express from 'express';
 import db from '../db/index.js';
 import utils from '../utils/commonUtils';
-import { remoteMethod } from '../routes/remoteMethod.js';
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 

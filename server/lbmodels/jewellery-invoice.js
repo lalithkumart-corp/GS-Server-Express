@@ -1,21 +1,22 @@
 'use strict';
-let app = require('../server');
+// let app = require('../server');
 let utils = require('../utils/commonUtils');
 let _ = require('lodash');
-let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
-let logger = app.get('logger');
+// let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
+// let logger = app.get('logger');
 let JewelleryInvoiceHelper = require('./modelHelpers/jewelleryInvoice');
 
 import { Stock } from './stock.js';
 import db from '../db/index.js';
 import express from 'express';
+const { remoteMethod } = require('../routes/remoteMethod.js');
+
 const router = express.Router();
 export default router;
 
 export class JwlInvoiceCls {
     constructor() {
-        this.userService = new userService();
-        this.appManager = new ApplicationManagerCls();
+        
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
@@ -49,10 +50,10 @@ export class JwlInvoiceCls {
                     payload.apiParams.paymentFormData.balance,
                     payload.apiParams.paymentFormData.paymentMode
                 ];
-            let result = await utils.executeSqlQuery(JwlInvoice.dataSource, sql, queryVal);
+            let result = await utils.executeSqlQuery(null, sql, queryVal);
             return result;
         } catch(e) {
-            logger.error(GsErrorCtrl.create({className: 'JwlInvoice', methodName: 'insertInvoiceData', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'JwlInvoice', methodName: 'insertInvoiceData', cause: e, message: 'Exception in sql query execution'}));
             console.log(e);
             throw e;
         }
@@ -60,7 +61,7 @@ export class JwlInvoiceCls {
 
     //for pdf bill content
     getInvoiceDataByKey(accessToken, invoiceKeys, cb) {
-        JwlInvoice._getInvoiceDataByKey(accessToken, invoiceKeys).then(
+        this._getInvoiceDataByKey(accessToken, invoiceKeys).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -78,9 +79,9 @@ export class JwlInvoiceCls {
         try {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
             let sql = SQL.INVOICE_DATA_NEW.replace(/REPLACE_USERID/g, _userId);
-            let result = await utils.executeSqlQuery(JwlInvoice.dataSource, sql, [invoiceKeys]);
+            let result = await utils.executeSqlQuery(null, sql, [invoiceKeys]);
             if(result && result.length > 0) {
-                let invoiceDataObj = JwlInvoice._constructInvoiceData(result);
+                let invoiceDataObj = this._constructInvoiceData(result);
                 return Object.values(invoiceDataObj);
                 // return result.map((aDbRow) => JSON.parse(aDbRow.invoice_data));
                 // return result[0].invoice_data;
@@ -158,7 +159,7 @@ export class JwlInvoiceCls {
 
     // for customer invoice page in UI
     getInvoiceRecordByKey(accessToken, invoiceKeys, cb) {
-        JwlInvoice._getInvoiceRecordByKey(accessToken, invoiceKeys).then(
+        this._getInvoiceRecordByKey(accessToken, invoiceKeys).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -176,7 +177,7 @@ export class JwlInvoiceCls {
         try {
             // let _userId = await utils.getStoreOwnerUserId(accessToken);
             // let sql = SQL.INVOICE_RECORD.replace(/INVOICE_TABLE/g, `jewellery_invoices_${_userId}`);
-            // let result = await utils.executeSqlQuery(JwlInvoice.dataSource, sql, [invoiceKeys]);
+            // let result = await utils.executeSqlQuery(null, sql, [invoiceKeys]);
             // if(result && result.length > 0) {
             //     // return result.map((aDbRow) => JSON.parse(aDbRow.raw_data));
             //     return result;
@@ -197,7 +198,7 @@ export class JwlInvoiceCls {
         try {
             let params = { filters };
             params._userId = await utils.getStoreOwnerUserId(accessToken);
-            let list = await JwlInvoice._fetchJwlCustInvoiceList(params);
+            let list = await this._fetchJwlCustInvoiceList(params);
             return {STATUS: 'SUCCESS', CUST_INV_LIST: list};
         } catch(e) {
             return {STATUS: 'ERROR', ERROR: e, MSG: (e?e.message:'')};
@@ -207,7 +208,7 @@ export class JwlInvoiceCls {
     _fetchJwlCustInvoiceList(params) {
         return new Promise( (resolve, reject) => {
             let sql = SQL.INVOICE_LIST_NEW;
-            sql = JwlInvoice._injectFilterQuerypart(sql, params, 'list');
+            sql = this._injectFilterQuerypart(sql, params, 'list');
             // sql = sql.replace(/STOCK_SOLD_TABLE/g, `stock_sold_${params._userId}`);
             // sql = sql.replace(/INVOICE_TABLE/g, `jewellery_invoice_details_${params._userId}`);
             sql = sql.replace(/REPLACE_USERID/g,  params._userId);
@@ -423,7 +424,7 @@ export class JwlInvoiceCls {
 export const JewelleryInvoice = new JwlInvoiceCls();
 
 
-JwlInvoice.remoteMethod('getInvoiceDataByKey', {
+JewelleryInvoice.remoteMethod('getInvoiceDataByKey', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -454,7 +455,7 @@ JwlInvoice.remoteMethod('getInvoiceDataByKey', {
     description: 'Jewellery Bill Invoice Date.',
 });
 
-JwlInvoice.remoteMethod('getInvoiceRecordByKey', {
+JewelleryInvoice.remoteMethod('getInvoiceRecordByKey', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -487,7 +488,7 @@ JwlInvoice.remoteMethod('getInvoiceRecordByKey', {
     description: 'Jewellery Bill Invoice Record.',
 });
 
-JwlInvoice.remoteMethod('getCustomerInvoiceListApi', {
+JewelleryInvoice.remoteMethod('getCustomerInvoiceListApi', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -517,7 +518,7 @@ JwlInvoice.remoteMethod('getCustomerInvoiceListApi', {
     description: 'Jewellery - Customer Invoice List.',
 });
 
-JwlInvoice.remoteMethod('getCustomerInvoiceListCountApi', {
+JewelleryInvoice.remoteMethod('getCustomerInvoiceListCountApi', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -547,7 +548,7 @@ JwlInvoice.remoteMethod('getCustomerInvoiceListCountApi', {
     description: 'Jewellery - Customer Invoice List count',
 });
 
-JwlInvoice.remoteMethod('deleteInvoice', {
+JewelleryInvoice.remoteMethod('deleteInvoice', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -580,7 +581,7 @@ JwlInvoice.remoteMethod('deleteInvoice', {
     description: 'Delete an Invoice'
 });
 
-JwlInvoice.remoteMethod('returnItemsApiHandler', {
+JewelleryInvoice.remoteMethod('returnItemsApiHandler', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {

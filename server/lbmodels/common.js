@@ -18,13 +18,7 @@ class CommonCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-export const Common = new CommonCls();
-
-
-// module.exports = function(Common) {
-    CommonCls.prototype.exportDbAPIHandler = async (accessToken, res, cb) => {
+    async exportDbAPIHandler(accessToken, res, cb) {
         try {
             let filename = Date.now();
             let dbBackupIntance = new DbBackup(filename);
@@ -39,263 +33,51 @@ export const Common = new CommonCls();
         }
     };
 
-    CommonCls.prototype.remoteMethod('exportDbAPIHandler', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }, {
-                arg: 'res', type: 'object', 'http': {source: 'res'}
-            }
-        ],
-        isStatic: true,
-        returns: [
-            {arg: 'body', type: 'file', root: true},
-            {arg: 'Content-Type', type: 'string', http: { target: 'header' }}
-          ],
-        http: {path: '/export-db', verb: 'get'},
-        description: 'For exporting the Full Database'
-    });
-
-    CommonCls.prototype.remoteMethod('addTagApi', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/add-tag', verb: 'post'},
-        description: 'Add Tags.',
-    });
-
-    CommonCls.prototype.remoteMethod('removeTagApi', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/remove-tag', verb: 'post'},
-        description: 'Add Tags.',
-    });
-
-
-    CommonCls.prototype.remoteMethod('fetchBankList', {
-        accepts: [],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/fetch-bank-list', verb: 'get'},
-        description: 'For fetching all banks list.',
-    });
-
-    CommonCls.prototype.remoteMethod('saveLocation', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/save-location', verb: 'post'},
-        description: 'Save user logged in Location',
-    });
-
-    CommonCls.prototype.remoteMethod('syncAnalyticsAppUsage', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/sync-app-usage', verb: 'post'},
-        description: 'sync analytics',
-    });
-
-    CommonCls.prototype.remoteMethod('syncAnalyticsAppLogin', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/sync-app-login', verb: 'post'},
-        description: 'sync analytics',
-    });
-
-    CommonCls.prototype.remoteMethod('syncAnalyticsPledgebook', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/sy-analytics-pb', verb: 'post'},
-        description: 'sync analytics PB',
-    });
-
-    CommonCls.prototype.remoteMethod('syncAnalyticsModulesUsed', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/sy-analytics-modules', verb: 'post'},
-        description: 'sync analytics modules',
-    });
-
-    CommonCls.prototype.remoteMethod('coreActionApi', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/core-action', verb: 'post'},
-        description: 'core-action',
-    });
-
-    CommonCls.prototype.createNewTablesIfNotExist = async (userId) => {
+    async createNewTablesIfNotExist(userId) {
         try {
-            await CommonCls.prototype._createCustomerTable(userId);
-            await CommonCls.prototype._createCustomerAttachmentsTable(userId);
-            await CommonCls.prototype._createPledgebookTable(userId);
-            await CommonCls.prototype._createPledgebookClosingBillTable(userId);
-            await CommonCls.prototype._createStockTable(userId);
-            await CommonCls.prototype._createStockSoldTable(userId);
-            await CommonCls.prototype._createOldItemStockTable(userId);
-            await CommonCls.prototype._createJwlInvoiceTable(userId);
-            await CommonCls.prototype._createJwlInvoiceItemTable(userId);
-            await CommonCls.prototype._createJwlEstimateInvoiceTable(userId);
-            await CommonCls.prototype._createJwlEstimateInvoiceItemsTable(userId);
-            await CommonCls.prototype._createOldItemEstimateTbl(userId);
-            await CommonCls.prototype._createFundTrnsTable(userId);
-            // await CommonCls.prototype._createFundTrnsTempTable(userId);
-            await CommonCls.prototype._createFundTrnsProcedure(userId);
+            await this._createCustomerTable(userId);
+            await this._createCustomerAttachmentsTable(userId);
+            await this._createPledgebookTable(userId);
+            await this._createPledgebookClosingBillTable(userId);
+            await this._createStockTable(userId);
+            await this._createStockSoldTable(userId);
+            await this._createOldItemStockTable(userId);
+            await this._createJwlInvoiceTable(userId);
+            await this._createJwlInvoiceItemTable(userId);
+            await this._createJwlEstimateInvoiceTable(userId);
+            await this._createJwlEstimateInvoiceItemsTable(userId);
+            await this._createOldItemEstimateTbl(userId);
+            await this._createFundTrnsTable(userId);
+            // await this._createFundTrnsTempTable(userId);
+            await this._createFundTrnsProcedure(userId);
             
-            await CommonCls.prototype._createUdhaarTable(userId);
-            await CommonCls.prototype._createUdhaarClosedBillsTable(userId);
+            await this._createUdhaarTable(userId);
+            await this._createUdhaarClosedBillsTable(userId);
                 
-            await CommonCls.prototype._insertUdhaarDefaults(userId);
-            await CommonCls.prototype._createNotesTable(userId);
+            await this._insertUdhaarDefaults(userId);
+            await this._createNotesTable(userId);
 
-            await CommonCls.prototype._insertJewelleryTagSettingDefaults(userId);
-            await CommonCls.prototype._createTriggers(SQL.TRIGGER_1, userId);
-            await CommonCls.prototype._createTriggers(SQL.TRIGGER_2, userId);
-            await CommonCls.prototype._createTriggers(SQL.TRIGGER_3, userId);
-            await CommonCls.prototype._createTriggers(SQL.TRIGGER_4, userId);
+            await this._insertJewelleryTagSettingDefaults(userId);
+            await this._createTriggers(SQL.TRIGGER_1, userId);
+            await this._createTriggers(SQL.TRIGGER_2, userId);
+            await this._createTriggers(SQL.TRIGGER_3, userId);
+            await this._createTriggers(SQL.TRIGGER_4, userId);
             return true;
         } catch(e) {
             throw e;
         }
     }
 
-    CommonCls.prototype.setupNewUser = async (userId) => {
+    async setupNewUser(userId) {
         try {
-            await CommonCls.prototype._createFundAccount(userId);
+            await this._createFundAccount(userId);
             return true;
         } catch(e) {
             throw e;
         }
     }
 
-    CommonCls.prototype._createCustomerTable = (userId) => {
+    _createCustomerTable(userId) {
         return new Promise( (resolve, reject) => {
             let simpleSql = `SELECT * FROM customer_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -322,7 +104,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createCustomerAttachmentsTable = (userId) => {
+    _createCustomerAttachmentsTable(userId) {
         return new Promise( (resolve, reject) => {
             let simpleSql = `SELECT * FROM customer_attachments_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -348,7 +130,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createPledgebookTable = (userId) => {
+    _createPledgebookTable(userId) {
         return new Promise( (resolve, reject) => {
             let simpleSql = `SELECT * FROM pledgebook_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -374,7 +156,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createPledgebookClosingBillTable = (userId) => {
+    _createPledgebookClosingBillTable(userId) {
         return new Promise ( (resolve, reject) => {
             let simpleSql = `SELECT * FROM pledgebook_closed_bills_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -401,7 +183,7 @@ export const Common = new CommonCls();
     }
 
 
-    CommonCls.prototype._createStockTable = (userId) => {
+    _createStockTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM stock_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -426,7 +208,7 @@ export const Common = new CommonCls();
             });
         });
     }
-    CommonCls.prototype._createStockSoldTable = (userId) => {
+    _createStockSoldTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM stock_sold_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -451,7 +233,7 @@ export const Common = new CommonCls();
             });
         });
     }
-    CommonCls.prototype._createOldItemStockTable = (userId) => {
+    _createOldItemStockTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM old_items_stock_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -476,7 +258,7 @@ export const Common = new CommonCls();
             });
         });
     }
-    CommonCls.prototype._createJwlInvoiceTable = (userId) => {
+    _createJwlInvoiceTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM jewellery_invoices_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -502,7 +284,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createJwlInvoiceItemTable = (userId) => {
+    _createJwlInvoiceItemTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM jewellery_invoice_items_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -528,7 +310,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createJwlEstimateInvoiceTable = (userId) => {
+    _createJwlEstimateInvoiceTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM jewellery_estimate_invoices_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -554,7 +336,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createJwlEstimateInvoiceItemsTable = (userId) => {
+    _createJwlEstimateInvoiceItemsTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM jewellery_estimate_invoices_items_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -580,7 +362,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createOldItemEstimateTbl = (userId) => {
+    _createOldItemEstimateTbl(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM old_items_estimates_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -606,7 +388,7 @@ export const Common = new CommonCls();
         });
     }
     
-    CommonCls.prototype._createFundTrnsTable = (userId) => {
+    _createFundTrnsTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM fund_transactions_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -632,7 +414,7 @@ export const Common = new CommonCls();
         });
     }
 
-    /*CommonCls.prototype._createFundTrnsTempTable = (userId) => {
+    /*_createFundTrnsTempTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM fund_trns_tmp_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -658,7 +440,7 @@ export const Common = new CommonCls();
         });
     }*/
 
-    CommonCls.prototype._createFundTrnsProcedure = (userId) => {
+    _createFundTrnsProcedure(userId) {
         return new Promise((resolve, reject) => {
             let sql = SQL.FUND_TRNS_PROCEDURE.replace(/REPLACE_USERID/g, userId);
             db.query(sql, (err, resp) => {
@@ -679,7 +461,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createFundAccount = (userId) => {
+    _createFundAccount(userId) {
         return new Promise((resolve, reject) => {
             db.query(SQL.NEW_FUND_ACCOUNT, [userId, 'Shop', 1], (err, resp) => {
                 if(err) {
@@ -694,7 +476,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createUdhaarTable = (userId) => {
+    _createUdhaarTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM udhaar_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -720,7 +502,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createUdhaarClosedBillsTable = (userId) => {
+    _createUdhaarClosedBillsTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM udhaar_closed_bills_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -746,7 +528,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._insertUdhaarDefaults = (userId) => {
+    _insertUdhaarDefaults(userId) {
         return new Promise((resolve, reject) => {
             let sql = `INSERT IGNORE INTO udhaar_settings (user_id, bill_series, next_bill_no) VALUES (?,'U',1)`
             db.query(sql, [userId], (err, resp) => {
@@ -762,7 +544,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createNotesTable = (userId) => {
+    _createNotesTable(userId) {
         return new Promise((resolve, reject) => {
             let simpleSql = `SELECT * FROM notes_${userId} LIMIT 1`;
             db.query(simpleSql, (error, result) => {
@@ -788,7 +570,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._createTriggers = (triggerSQL, userId) => {
+    _createTriggers(triggerSQL, userId) {
         return new Promise((resolve, reject) => {
             let sql = triggerSQL.replace(/REPLACE_USERID/g, userId);
             db.query(sql, (err, resp) => {
@@ -805,8 +587,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.fetchBankList = (cb) => {
-        CommonCls.prototype._fetchBankList().then(
+    fetchBankList(cb) {
+        this._fetchBankList().then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -821,7 +603,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._fetchBankList = () => {
+    _fetchBankList() {
         return new Promise( async (resolve, reject) => {
             let query = `SELECT * FROM banks_list`;
             db.query(query, (err, res) => {
@@ -834,8 +616,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.addTagApi = (apiParams, cb) => {
-        CommonCls.prototype._addTagApi(apiParams).then(
+    addTagApi(apiParams, cb) {
+        this._addTagApi(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -849,7 +631,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._addTagApi = (apiParams) => {
+    _addTagApi(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
@@ -867,8 +649,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.removeTagApi = (apiParams, cb) => {
-        CommonCls.prototype._removeTagApi(apiParams).then(
+    removeTagApi(apiParams, cb) {
+        this._removeTagApi(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -882,7 +664,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._removeTagApi = (apiParams) => {
+    _removeTagApi(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
@@ -900,8 +682,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.saveLocation = (apiParams, cb) => {
-        CommonCls.prototype._saveLocation(apiParams).then(
+    saveLocation(apiParams, cb) {
+        this._saveLocation(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -916,7 +698,7 @@ export const Common = new CommonCls();
     }
 
     // EXTERNAL CODE - CAN BE SEPARATED
-    CommonCls.prototype._saveLocation = (apiParams) => {
+    _saveLocation(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
@@ -935,8 +717,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.syncAnalyticsAppUsage = (apiParams, cb) => {
-        CommonCls.prototype._syncAnalyticsAppUsage(apiParams).then(
+    syncAnalyticsAppUsage(apiParams, cb) {
+        this._syncAnalyticsAppUsage(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -950,7 +732,9 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._syncAnalyticsAppUsage = (apiParams) => {
+
+
+    _syncAnalyticsAppUsage(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 for(let i=0; i<apiParams.unsyncedMsgs.length; i++) {
@@ -975,8 +759,8 @@ export const Common = new CommonCls();
             }
         });
     }
-    CommonCls.prototype.syncAnalyticsAppLogin = (apiParams, cb) => {
-        CommonCls.prototype._syncAnalyticsAppLogin(apiParams).then(
+    syncAnalyticsAppLogin(apiParams, cb) {
+        this._syncAnalyticsAppLogin(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -990,7 +774,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._syncAnalyticsAppLogin = (apiParams) => {
+    _syncAnalyticsAppLogin(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 for(let i=0; i<apiParams.unsyncedMsgs.length; i++) {
@@ -1016,8 +800,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.syncAnalyticsPledgebook = (apiParams, cb) => {
-        CommonCls.prototype._syncAnalyticsPledgebook(apiParams).then(
+    syncAnalyticsPledgebook(apiParams, cb) {
+        this._syncAnalyticsPledgebook(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -1031,7 +815,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._syncAnalyticsPledgebook = (apiParams) => {
+    _syncAnalyticsPledgebook(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 for(let i=0; i<apiParams.unsyncedMsgs.length; i++) {
@@ -1057,8 +841,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.syncAnalyticsModulesUsed = (apiParams, cb) => {
-        CommonCls.prototype._syncAnalyticsModulesUsed(apiParams).then(
+    syncAnalyticsModulesUsed(apiParams, cb) {
+        this._syncAnalyticsModulesUsed(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -1072,7 +856,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._syncAnalyticsModulesUsed = (apiParams) => {
+    _syncAnalyticsModulesUsed(apiParams) {
         return new Promise(async (resolve, reject) => {
             try {
                 for(let i=0; i<apiParams.unsyncedMsgs.length; i++) {
@@ -1098,8 +882,8 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype.coreActionApi = (apiParams, cb) => {
-        CommonCls.prototype._coreActionApi(apiParams).then(
+    coreActionApi(apiParams, cb) {
+        this._coreActionApi(apiParams).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -1113,7 +897,7 @@ export const Common = new CommonCls();
         );
     }
 
-    CommonCls.prototype._coreActionApi = (apiParams) => {
+    _coreActionApi(apiParams) {
         return new Promise((resolve, reject) => {
             db.query('SELECT * FROM app WHERE `key`=?', [apiParams.appKey], (err, res) => {
                 if(err){
@@ -1130,7 +914,7 @@ export const Common = new CommonCls();
         });
     }
 
-    CommonCls.prototype._insertJewelleryTagSettingDefaults = (userId) => {
+    _insertJewelleryTagSettingDefaults(userId) {
         return new Promise((resolve, reject) => {
             let sql = `INSERT IGNORE INTO jewellery_tag_settings (user_id, selected_tag_template_id) VALUES (?,1)`
             db.query(sql, [userId], (err, resp) => {
@@ -1145,8 +929,226 @@ export const Common = new CommonCls();
             });
         })
     }
-// };
 
+}
+
+export const Common = new CommonCls();
+    
+Common.remoteMethod('exportDbAPIHandler', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }, {
+            arg: 'res', type: 'object', 'http': {source: 'res'}
+        }
+    ],
+    isStatic: true,
+    returns: [
+        {arg: 'body', type: 'file', root: true},
+        {arg: 'Content-Type', type: 'string', http: { target: 'header' }}
+        ],
+    http: {path: '/export-db', verb: 'get'},
+    description: 'For exporting the Full Database'
+});
+
+Common.remoteMethod('addTagApi', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/add-tag', verb: 'post'},
+    description: 'Add Tags.',
+});
+
+Common.remoteMethod('removeTagApi', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/remove-tag', verb: 'post'},
+    description: 'Add Tags.',
+});
+
+
+Common.remoteMethod('fetchBankList', {
+    accepts: [],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/fetch-bank-list', verb: 'get'},
+    description: 'For fetching all banks list.',
+});
+
+Common.remoteMethod('saveLocation', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/save-location', verb: 'post'},
+    description: 'Save user logged in Location',
+});
+
+Common.remoteMethod('syncAnalyticsAppUsage', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/sync-app-usage', verb: 'post'},
+    description: 'sync analytics',
+});
+
+Common.remoteMethod('syncAnalyticsAppLogin', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/sync-app-login', verb: 'post'},
+    description: 'sync analytics',
+});
+
+Common.remoteMethod('syncAnalyticsPledgebook', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/sy-analytics-pb', verb: 'post'},
+    description: 'sync analytics PB',
+});
+
+Common.remoteMethod('syncAnalyticsModulesUsed', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/sy-analytics-modules', verb: 'post'},
+    description: 'sync analytics modules',
+});
+
+Common.remoteMethod('coreActionApi', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/core-action', verb: 'post'},
+    description: 'core-action',
+});
+
+    
+
+    
 let SQL = {
     CUSTOMER_TABLE: `CREATE TABLE customer_REPLACE_USERID (
         CustomerId int NOT NULL AUTO_INCREMENT,
@@ -1694,3 +1696,5 @@ let SQL = {
     SYNC_ANALYTICS_PLEDGEBOOK: `INSERT INTO synced_analytics_pledgebook (id, user_id, unique_identifier, bill_no, bill_date, cust_id, amount, action, created_date, modified_date, mycreated_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
     SYNC_ANALYTICS_MODULES_USAGE: `INSERT INTO synced_analytics_module_used (id, user_id, module, ctx1, ctx2, ctx3, created_date, modified_date, mycreated_date) VALUES (?,?,?,?,?,?,?,?,?)`,
 }
+
+export default router;

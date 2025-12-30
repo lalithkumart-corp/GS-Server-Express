@@ -1,9 +1,10 @@
 'use strict';
-let app = require('../server');
-let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
-let logger = app.get('logger');
+// let app = require('../server');
+// let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
+// let logger = app.get('logger');
 let utils = require('../utils/commonUtils');
 let moment = require('moment');
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 
 import db from '../db/index.js';

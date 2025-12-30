@@ -1,13 +1,13 @@
 'use strict';
 
 import db from '../db/index.js';
-import { Customer } from './customer.js';
-import { FundTransaction } from './fund-transaction.js';
+import PledgebookService from '../services/pledgebook.service.js';
+import { CustomerCls } from './customer.js';
+import { FundTransactionCls } from './fund-transaction.js';
 import { Pledgebooksettings } from './pledgebook-settings.js';
 import express from 'express';
 
 let utils = require('../utils/commonUtils');
-import { appConfig } from '../config/index.js';
 let _ = require('lodash');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const createCsvStringifier = require('csv-writer').createObjectCsvStringifier;
@@ -25,7 +25,14 @@ const PAYMENT_MODE = {
 
 const router = express.Router();
 
-class PledgebookCls {
+export class PledgebookCls {
+
+    constructor() {
+        this.customer = new CustomerCls();
+        this.fundTransaction = new FundTransactionCls();
+        this.service = new PledgebookService();
+    }
+
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
@@ -75,27 +82,27 @@ class PledgebookCls {
             if(!isActiveUser)
                 throw 'User is Not Active';
 
-            let pledgebookTableName = await this.getPledgebookTableName(parsedArg._userId);
+            let pledgebookTableName = await this.service.getPledgebookTableName(parsedArg._userId);
             let validation = await this.doValidation(parsedArg, pledgebookTableName);
             if(validation.status) {
                 parsedArg.userPicture.id = parsedArg.userPicture?parsedArg.userPicture.imageId:null;
                 parsedArg.ornPicture.id = parsedArg.ornPicture?parsedArg.ornPicture.imageId:null;
-                let customerObj = await Customer.handleCustomerData(parsedArg); //Save customer information in Customer Table
+                let customerObj = await this.customer.handleCustomerData(parsedArg); //Save customer information in Customer Table
                 parsedArg.customerId = customerObj.customerId;
 
 
                 if(parsedArg.mobile) {
                     if(!customerObj.record.mobile || customerObj.record.mobile == 'null') {
-                        await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+                        await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
                     } else if(customerObj.record.mobile !== parsedArg.mobile){ //CUSTOM: Mobile number Handling:  ---- > If the given phone number in Bill is different, then save the number given in bill as Comment)
                         
                         let oldPrimaryNumber = customerObj.record.mobile;
-                        await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+                        await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
                         if(!customerObj.record.secMobile || customerObj.record.secMobile == 'null')
-                            await Customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
+                            await this.customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
                         else {
                             let oldSecNumber = customerObj.record.secMobile;
-                            await Customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
+                            await this.customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
 
                             if(customerObj.record.secMobile == parsedArg.mobile) {
                                 console.log('Mobile number shiffling only happened. So, dont add in BillRemarks section');
@@ -108,9 +115,9 @@ class PledgebookCls {
                 // //CUSTOM: Mobile number Handling:  ---- > If the given phone number in Bill is different, then save the number given in bill as Comment)
                 // if(parsedArg.mobile && customerObj.record.mobile !== parsedArg.mobile) {
                 //     if(!customerObj.record.mobile || customerObj.record.mobile == 'null')
-                //         await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+                //         await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
                 //     else if(!customerObj.record.secMobile)
-                //         await Customer._updateSecMobile(parsedArg.mobile, parsedArg, parsedArg._userId.customerId);
+                //         await this.customer._updateSecMobile(parsedArg.mobile, parsedArg, parsedArg._userId.customerId);
                 //     else if(customerObj.record.secMobile == parsedArg.mobile)
                 //         console.log('Sec mobile is already filled, so do nothing now');
                 //     else
@@ -119,7 +126,7 @@ class PledgebookCls {
 
                 await saveBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook
                 await Pledgebooksettings.updateLastBillDetail(parsedArg);
-                FundTransaction.add({parsedArg, pledgebookTableName}, 'pledgebook');
+                this.fundTransaction.add({parsedArg, pledgebookTableName}, 'pledgebook');
                 return {STATUS: 'SUCCESS', STATUS_MSG: 'Successfully inserted new bill'};
             } else {
                 throw validation.errors;
@@ -183,8 +190,8 @@ class PledgebookCls {
                 if(!isActiveUser)
                     throw 'User is Not Active';
 
-                let pledgebookTableName = await this.getPledgebookTableName(userId);
-                let pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(userId);
+                let pledgebookTableName = await this.service.getPledgebookTableName(userId);
+                let pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(userId);
                 
                 let query = this.getQuery('normal', {...params, getAlerts: true}, pledgebookTableName, pledgebookClosedBillTableName);  
                 query = query.replace(/REPLACE_USERID/g, userId);
@@ -278,8 +285,8 @@ class PledgebookCls {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
-            params._pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(params._userId);
+            params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
+            params._pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(params._userId);
             params._status = 0;
             if(data.requestParams[0].isRenewal) {
                 await this.updatePledgebookBillDetails(params);
@@ -287,7 +294,7 @@ class PledgebookCls {
                 await this.updatePledgebookBillStatus(params);
             }
             
-            FundTransaction.prototype.add(params, 'redeem');
+            this.fundTransaction.add(params, 'redeem');
             return {STATUS: 'success', RESPONSE: {}, STATUS_MSG: ''};
         } catch(e) {
             console.log(e);
@@ -369,7 +376,7 @@ class PledgebookCls {
                     return reject(err);
                 } else {
                     if(result.affectedRows > 0) {
-                        FundTransaction.prototype.removeEntry(params, 'redeem');
+                        this.fundTransaction.removeEntry(params, 'redeem');
                         let query = this.getQuery('reopen-bill', params, params._pledgebookClosedBillTableName);
                         db.query(query, (err, result) => {
                             if(err) {
@@ -387,16 +394,6 @@ class PledgebookCls {
                 }
             });
         });
-    }
-
-    async getPledgebookTableName(userId) {
-        let tableName = appConfig.get('pledgebookTableName')+ '_' + userId;
-        return tableName;
-    }
-
-    async getPledgebookClosedTableName(userId) {
-        let tableName = appConfig.get('pledgebookClosedBillListTableName')+ '_' + userId;
-        return tableName;
     }
 
     getQuery(queryIdentifier, params, pledgebookTableName, pledgebookClosedBillTableName) {
@@ -689,9 +686,9 @@ class PledgebookCls {
                                 WHERE
                             UniqueIdentifier=?`;
                 break;
-            case 'pending-bill-list':
-                query = `SELECT * FROM ${pledgebookTableName} WHERE CustomerId=${params.custId} AND Status=1`;
-                break;
+            // case 'pending-bill-list':
+            //     query = `SELECT * FROM ${pledgebookTableName} WHERE CustomerId=${params.custId} AND Status=1`;
+            //     break;
         }
         return query;
     }
@@ -851,7 +848,7 @@ class PledgebookCls {
     _getPendingBillNumbers(accessToken) {
         return new Promise( async (resolve, reject) => {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await this.getPledgebookTableName(_userId);
+            let pledgebookTableName = await this.service.getPledgebookTableName(_userId);
             let query = this.getQuery('pendingBillNumbers', {}, pledgebookTableName);
             db.query(query, (err, result) => {
                 if(err) {
@@ -887,7 +884,7 @@ class PledgebookCls {
                 FundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
             }
             let billNoArray = billNoWithUUIDArray.map((anObj) => anObj.billNo);
-            let pledgebookTableName = await this.getPledgebookTableName(_userId);
+            let pledgebookTableName = await this.service.getPledgebookTableName(_userId);
             let query = this.getQuery('billDetails', billNoArray, pledgebookTableName);
             if(fetchOnlyPending)
                 query +=` AND STATUS=1`;
@@ -918,8 +915,8 @@ class PledgebookCls {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
-            params._pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(params._userId);
+            params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
+            params._pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(params._userId);
             params._status = 1;
             await this.reOpenBill(params);
             return {STATUS: 'success', RESPONSE: {}, STATUS_MSG: ''};
@@ -940,8 +937,8 @@ class PledgebookCls {
     async fetchHistory(data) {
         return new Promise( async (resolve, reject) => {
             data._userId = await utils.getStoreOwnerUserId(data.accessToken);
-            data._pledgebookTableName = await this.getPledgebookTableName(data._userId);
-            data._pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(data._userId);
+            data._pledgebookTableName = await this.service.getPledgebookTableName(data._userId);
+            data._pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(data._userId);
             let query = this.getQuery('byCustomerId', data, data._pledgebookTableName, data._pledgebookClosedBillTableName);
             query = query.replace(/REPLACE_USERID/g, data._userId); 
             db.query(query, [data.customerId], (err, result) => {
@@ -966,23 +963,23 @@ class PledgebookCls {
                 throw 'Access Token is missing';
             let parsedArg = this.parseInputDataForUpdate(params);            
             parsedArg._userId = await utils.getStoreOwnerUserId(params.accessToken);
-            let pledgebookTableName = await this.getPledgebookTableName(parsedArg._userId);                        
+            let pledgebookTableName = await this.service.getPledgebookTableName(parsedArg._userId);                        
             parsedArg.ornPicture.id = parsedArg.ornPicture?parsedArg.ornPicture.imageId:null;
-            let customerObj = await Customer.handleCustomerData(parsedArg); //Save customer information in Customer Table
+            let customerObj = await this.customer.handleCustomerData(parsedArg); //Save customer information in Customer Table
             parsedArg.customerId = customerObj.customerId;
 
             if(parsedArg.mobile) {
                 if(!customerObj.record.mobile || customerObj.record.mobile == 'null') {
-                    await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+                    await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
                 } else if(customerObj.record.mobile !== parsedArg.mobile){ //CUSTOM: Mobile number Handling:  ---- > If the given phone number in Bill is different, then save the number given in bill as Comment)
                     
                     let oldPrimaryNumber = customerObj.record.mobile;
-                    await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+                    await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
                     if(!customerObj.record.secMobile || customerObj.record.secMobile == 'null')
-                        await Customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
+                        await this.customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
                     else {
                         let oldSecNumber = customerObj.record.secMobile;
-                        await Customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
+                        await this.customer._updateSecMobile(oldPrimaryNumber, parsedArg.customerId, parsedArg._userId);
                         
                         if(customerObj.record.secMobile == parsedArg.mobile) {
                             console.log('Mobile number shiffling only happened. So, dont add in BillRemarks section');
@@ -995,9 +992,9 @@ class PledgebookCls {
             
             // if(parsedArg.mobile && customerObj.record.mobile !== parsedArg.mobile) {
             //     if(!customerObj.record.mobile || customerObj.record.mobile == 'null')
-            //         await Customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
+            //         await this.customer._updatePrimaryMobile(parsedArg.mobile, parsedArg.customerId, parsedArg._userId);
             //     else if(!customerObj.record.secMobile)
-            //         await Customer._updateSecMobile(parsedArg.mobile, parsedArg, parsedArg._userId.customerId);
+            //         await this.customer._updateSecMobile(parsedArg.mobile, parsedArg, parsedArg._userId.customerId);
             //     else if(customerObj.record.secMobile == parsedArg.mobile)
             //         console.log('Sec mobile is already filled, so do nothing now');
             //     else if(parsedArg.billRemarks.indexOf(parsedArg.mobile) == -1)
@@ -1005,7 +1002,7 @@ class PledgebookCls {
             // };
 
             await this.updateBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook                
-            FundTransaction.prototype.update({parsedArg, pledgebookTableName}, 'pledgebook');
+            this.fundTransaction.update({parsedArg, pledgebookTableName}, 'pledgebook');
             return {STATUS: 'SUCCESS', STATUS_MSG: 'Successfully Updated the bill'};
         } catch(e) {
             return {STATUS: 'ERROR', ERROR: e, MSG: (e?e.message:'')};
@@ -1106,8 +1103,8 @@ class PledgebookCls {
         return new Promise( async (resolve, reject) => {
             let queryValues = [(params.offsetEnd - params.offsetStart), params.offsetStart];
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await this.getPledgebookTableName(userId);
-            let pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(userId);
+            let pledgebookTableName = await this.service.getPledgebookTableName(userId);
+            let pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(userId);
             
             let query = this.getQuery('normal', params, pledgebookTableName, pledgebookClosedBillTableName);
             query = query.replace(/REPLACE_USERID/g, userId);
@@ -1288,27 +1285,13 @@ class PledgebookCls {
         return res;
     }
 
-    _getPendingBillsList(custId, userId) {
-        return new Promise( async (resolve, reject) => {
-            let pledgebookTableName = await this.getPledgebookTableName(userId);
-            db.query(this.getQuery('pending-bill-list', {custId: custId}, pledgebookTableName), (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-
-            });
-        });
-    }
-
     async archiveBillsApiHandler(params) {
         try {
             if(!params.accessToken)
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
+                params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
                 await this._archiveBills(params);
             } else {
                 throw 'No bills selected for archiving';
@@ -1338,7 +1321,7 @@ class PledgebookCls {
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
+                params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
                 await this._unArchiveBills(params);
             } else {
                 throw 'No bills selected for unaArchiving';
@@ -1368,7 +1351,7 @@ class PledgebookCls {
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
+                params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
                 await this._trashBills(params);
             } else {
                 throw 'No bills selected for Trash';
@@ -1398,7 +1381,7 @@ class PledgebookCls {
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
+                params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
                 await this._restoreBills(params);
             } else {
                 throw 'No bills selected for Trash';
@@ -1428,8 +1411,8 @@ class PledgebookCls {
                 throw 'Access Token is missing';
             if(params.uniqueIdentifiers.length > 0) {
                 params._userId = await utils.getStoreOwnerUserId(params.accessToken);
-                params._pledgebookTableName = await this.getPledgebookTableName(params._userId);
-                params._pledgebookClosedBillTableName = await this.getPledgebookClosedTableName(params._userId);
+                params._pledgebookTableName = await this.service.getPledgebookTableName(params._userId);
+                params._pledgebookClosedBillTableName = await this.service.getPledgebookClosedTableName(params._userId);
 
                 await this._copyToRecycleBinTable(params);
                 await this._copyClosedBillsToRecycleBinTable(params);
@@ -1531,7 +1514,7 @@ class PledgebookCls {
             
 
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let pledgebookTableName = await this.getPledgebookTableName(_userId);
+            let pledgebookTableName = await this.service.getPledgebookTableName(_userId);
             let rawPledgebookRecord = await this._getRawPledgebookBillFromDB(pledgebookTableName, payload.redeemParams.pledgeBookUID);
             if(!rawPledgebookRecord)
                 throw `Loan Bill ${payload.newBillParams.billSeries} ${payload.newBillParams.billNo} Not found in DB`;
@@ -1551,7 +1534,7 @@ class PledgebookCls {
             //Insert In FundTransaction table
             params._userId = _userId;
             params.paymentDetails = payload.newBillParams.paymentDetails;
-            FundTransaction.prototype.add({parsedArg: params, pledgebookTableName}, 'pledgebook');
+            this.fundTransaction.add({parsedArg: params, pledgebookTableName}, 'pledgebook');
 
             return {STATUS: 'success', RESPONSE: {}, STATUS_MSG: ''};
         } catch(e) {

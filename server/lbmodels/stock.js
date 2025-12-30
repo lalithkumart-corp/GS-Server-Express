@@ -1,11 +1,12 @@
 'use strict';
-let app = require('../server');
+// let app = require('../server');
 let utils = require('../utils/commonUtils');
 let _ = require('lodash');
-let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
-let logger = app.get('logger');
+// let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
+// let logger = app.get('logger');
 let MyHelperClass = require('./modelHelpers/stock');
 let myHelper = new MyHelperClass();
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 import db from '../db/index.js';
 import express from 'express';
@@ -15,8 +16,8 @@ import { FundTransactionCls } from './fund-transaction.js';
 import { JwlEstimateInvoiceCls } from './jewellery-estimate-invoice.js';
 import { ApplicationManagerCls } from './app-manager.js';
 import UserService from '../services/user.service.js';
-import { JewellryOrnamentCls } from './jewellryOrnament.js';
-import { ProductCodeCls } from './productCode.js';
+import { JewelleryOrnamentCls } from './jewellery-ornament.js';
+import { ProductCodeCls } from './product-code.js';
 import { TouchCls } from './touch.js';
 import { SupplierCls } from './supplier.js';
 const router = express.Router();
@@ -30,7 +31,7 @@ export class StockCls {
         this.fundTransaction = new FundTransactionCls();
         this.jwlInvoice = new JwlInvoiceCls();
         this.jwlEstimateInvoice = new JwlEstimateInvoiceCls();
-        this.jewellryOrnament = new JewellryOrnamentCls();
+        this.jewelleryOrnament = new JewelleryOrnamentCls();
         this.productCode = new ProductCodeCls();
         this.touch = new TouchCls();
         this.supplier = new SupplierCls();
@@ -53,7 +54,7 @@ export class StockCls {
 
             params._stockTableName = this._getStockTableName(params._userId);
             //if(!params.ornamentId) {
-                let obj =  await this.jewellryOrnament.handleOrnData(params);
+                let obj =  await this.jewelleryOrnament.handleOrnData(params);
                 params.ornamentId = obj.id;
                 params.productCodeTableId = obj.productCodeTableId;
                 params.productCodeSeries = obj.productCodeSeries;
@@ -103,7 +104,7 @@ export class StockCls {
 
             params._stockTableName = this._getStockTableName(params._userId);
 
-            let obj =  await this.jewellryOrnament.handleOrnData(params, {updateAPI: true});
+            let obj =  await this.jewelleryOrnament.handleOrnData(params, {updateAPI: true});
             params.ornamentId = obj.id;
             params.productCodeTableId = obj.productCodeTableId;
             params.productCodeSeries = obj.productCodeSeries;
@@ -611,7 +612,7 @@ export class StockCls {
             return true;
         } catch(e) {
             console.log(e);
-            logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertInSellingDetail', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertInSellingDetail', cause: e, message: 'Exception in sql query execution'}));
             throw e;
         }
     }
@@ -640,7 +641,7 @@ export class StockCls {
             return true;
         } catch(e) {
             console.log(e);
-            logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'updateQtyInStockTable', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'updateQtyInStockTable', cause: e, message: 'Exception in sql query execution'}));
             throw e;
         }
     }
@@ -654,7 +655,7 @@ export class StockCls {
             await utils.executeSqlQuery(null, sql, queryParams);
         } catch(e) {
             console.log(e);
-            logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertIntoOldOrnamentsTable', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertIntoOldOrnamentsTable', cause: e, message: 'Exception in sql query execution'}));
             throw e;
         }
     }
@@ -668,12 +669,12 @@ export class StockCls {
             await utils.executeSqlQuery(null, sql, queryParams);
         } catch(e) {
             console.log(e);
-            logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertIntoOldOrnamentsEstimateTable', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'Stock', methodName: 'insertIntoOldOrnamentsEstimateTable', cause: e, message: 'Exception in sql query execution'}));
             throw e;
         }
     }
 
-    async fetchSoldOutItemListasync (accessToken, filters) {
+    async fetchSoldOutItemList(accessToken, filters) {
         try {
             let params = {accessToken: accessToken, filters: filters};
             params._userId = await utils.getStoreOwnerUserId(accessToken);
@@ -695,7 +696,7 @@ export class StockCls {
             return res;
         } catch(e) {
             console.log(e);
-            logger.error(GsErrorCtrl.create({className: 'Stock', methodName: '_fetchSoldOutItemList', cause: e, message: 'Exception in sql query execution'}));
+            // logger.error(GsErrorCtrl.create({className: 'Stock', methodName: '_fetchSoldOutItemList', cause: e, message: 'Exception in sql query execution'}));
             throw e;
         }
     }

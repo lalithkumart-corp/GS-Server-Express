@@ -5,7 +5,8 @@ let utils = require('../utils/commonUtils');
 const { remoteMethod } = require('../routes/remoteMethod.js');
 import express from 'express';
 import db from '../db/index.js';
-class AnalyticsCls {
+
+export class AnalyticsCls {
     constructor() {
 
     }
@@ -13,47 +14,8 @@ class AnalyticsCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-const router = express.Router();
-
-const Analytics = new AnalyticsCls();
-
-
-
-// module.exports = function(Analytics) {
-    AnalyticsCls.prototype.remoteMethod('analyticsApiHandler', {
-        accepts: [{
-            arg: 'accessToken', type: 'string', http: (ctx) => {
-                let req = ctx && ctx.req;
-                let accessToken;
-                if(req && req.headers.authorization)
-                    accessToken = req.headers.authorization;
-                return accessToken;
-            },
-            description: 'Arguments goes here',
-        },{
-            arg: 'payload',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/create-event', verb: 'post'},
-        description: 'Analytics',
-    });
-
-    AnalyticsCls.prototype.analyticsApiHandler = (accessToken, payload, cb) => {
-        AnalyticsCls.prototype._analyticsApi(accessToken, payload).then(
+    analyticsApiHandler(accessToken, payload, cb) {
+        this._analyticsApi(accessToken, payload).then(
             (resp) => {
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             },
@@ -67,7 +29,7 @@ const Analytics = new AnalyticsCls();
         );
     }
 
-    AnalyticsCls.prototype._analyticsApi = async (accessToken, payload) => {
+    async _analyticsApi(accessToken, payload) {
         return new Promise(async (resolve, reject) => {
             let _userId = await utils.getStoreOwnerUserId(accessToken);
             let sql = SQL.MODULE_USED;
@@ -80,8 +42,47 @@ const Analytics = new AnalyticsCls();
             });
         });
     }
-// };
+
+}
+const router = express.Router();
+
+export const Analytics = new AnalyticsCls();
+
+
+Analytics.remoteMethod('analyticsApiHandler', {
+    accepts: [{
+        arg: 'accessToken', type: 'string', http: (ctx) => {
+            let req = ctx && ctx.req;
+            let accessToken;
+            if(req && req.headers.authorization)
+                accessToken = req.headers.authorization;
+            return accessToken;
+        },
+        description: 'Arguments goes here',
+    },{
+        arg: 'payload',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/create-event', verb: 'post'},
+    description: 'Analytics',
+});
+
 
 let SQL = {
     MODULE_USED: 'INSERT INTO analytics_module_used (user_id, module, ctx1, ctx2, ctx3) VALUES (?,?,?,?,?)'
 }
+
+export default router;

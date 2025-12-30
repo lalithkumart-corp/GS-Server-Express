@@ -14,110 +14,11 @@ export class ApplicationManagerCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-const ApplicationManager = new ApplicationManagerCls();
-
-// module.exports = function(ApplicationManager) {
-    ApplicationManagerCls.prototype.remoteMethod('getStatus', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/get-status', verb: 'get'},
-        description: 'For fetching app status.',
-    });
-
-    ApplicationManagerCls.prototype.remoteMethod('checkUsedTrialOffer', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/check-used-trial-offer', verb: 'get'},
-        description: 'For fetching app status.',
-    });
-
-    ApplicationManagerCls.prototype.remoteMethod('updateStatus', {
-        accepts: {
-            arg: 'apiParams',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-status', verb: 'post'},
-        description: 'Update application status'
-    });
-
-    ApplicationManagerCls.prototype.remoteMethod('renewLicenseApi', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken = req && req.query.access_token;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }, {
-            arg: 'data',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/renew-license', verb: 'post'},
-        description: 'Renew the license'
-    });
-
-    ApplicationManagerCls.prototype.getStatus = async (accessToken, cb) => {
+    async getStatus(accessToken, cb) {
         try {
             let status = 0;
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            let appRow = await ApplicationManagerCls.prototype.findByUserId(userId);
+            let appRow = await this.findByUserId(userId);
             let daysToExpire;
             if(appRow) {
                 status = appRow.status;
@@ -131,7 +32,7 @@ const ApplicationManager = new ApplicationManagerCls();
             return { STATUS: 'ERROR', ERROR: e, MSG: (e?e.message:'')};
         }
     }
-    ApplicationManagerCls.prototype.findByUserId = (userId) => {
+    findByUserId(userId) {
         return new Promise((resolve, reject) => {
             db.query('SELECT * FROM app WHERE user_id = ?', [userId], (err, result) => {
                 if(err) {
@@ -144,21 +45,21 @@ const ApplicationManager = new ApplicationManagerCls();
             });
         })
     }
-    ApplicationManagerCls.prototype.checkUsedTrialOffer = async (accessToken) => {
+    async checkUsedTrialOffer(accessToken) {
         try {
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            let flag = await ApplicationManagerCls.prototype.checkAlreadySubscribedTrial(userId);
+            let flag = await this.checkAlreadySubscribedTrial(userId);
             return { STATUS: 'SUCCESS', TRIAL_OVER: flag};
         } catch(e) {
             return { STATUS: 'ERROR', ERROR: e, MSG: (e?e.message:'')};
         }
     }
 
-    ApplicationManagerCls.prototype.updateStatus = async function(apiParams, cb) {
+    async updateStatus(apiParams, cb) {
         try {
             apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
             if(apiParams._userId) {
-                let resp = await ApplicationManagerCls.prototype._updateTable(apiParams);
+                let resp = await this._updateTable(apiParams);
                 return { STATUS: 'SUCCESS', resp: resp};
             } else {
                 throw 'AUTH INVALID';
@@ -168,16 +69,16 @@ const ApplicationManager = new ApplicationManagerCls();
         }
     }
 
-    ApplicationManagerCls.prototype._updateTable = (apiParams) => {
+    _updateTable(apiParams) {
         return new Promise( async (resolve, reject) => {
             try {
                 let today = moment().format('YYYY-MM-DD HH:MM:ss');
                 if(apiParams.plan == "trial") {
                     let day7 = moment().add(6, 'days').format('YYYY-MM-DD HH:MM:ss');
-                    let alreadySubscribedTrial = await ApplicationManagerCls.prototype.checkAlreadySubscribedTrial(apiParams._userId);
+                    let alreadySubscribedTrial = await this.checkAlreadySubscribedTrial(apiParams._userId);
                     if(alreadySubscribedTrial)
                         return reject( new Error('Trial Version already completed!'));
-                    let updatedTable = await ApplicationManagerCls.prototype.activate(apiParams._userId, {status: 1, used_trial_offer: 1, valid_till_date: day7, modified_date: today});
+                    let updatedTable = await this.activate(apiParams._userId, {status: 1, used_trial_offer: 1, valid_till_date: day7, modified_date: today});
                     await Common.createNewTablesIfNotExist(apiParams._userId);
                     await Common.setupNewUser(apiParams._userId);
                 } else if(apiParams.plan == "custom") {
@@ -190,7 +91,7 @@ const ApplicationManager = new ApplicationManagerCls();
                         let decryptedObj = JSON.parse(decryptedMessage);
                         if(!decryptedObj.expiryDate)
                             return reject('License Invalid - Code 1'); // If expiry date argument is not present in license key
-                        await ApplicationManagerCls.prototype.activate(apiParams._userId, {status: 1, used_trial_offer: 1, valid_till_date: decryptedObj.expiryDate, modified_date: today});
+                        await this.activate(apiParams._userId, {status: 1, used_trial_offer: 1, valid_till_date: decryptedObj.expiryDate, modified_date: today});
                     } catch(e) {
                         return reject('License Invalid - Code 2'); // If license key is not the proper/right one
                     }
@@ -202,7 +103,7 @@ const ApplicationManager = new ApplicationManagerCls();
             }
         });
     }
-    ApplicationManagerCls.prototype.checkAlreadySubscribedTrial = (userId) => {
+    checkAlreadySubscribedTrial(userId) {
         return new Promise((resolve, reject) => {
             try {
                 db.query('SELECT * FROM app WHERE user_id = ?', [userId], (err, res) => {
@@ -225,7 +126,7 @@ const ApplicationManager = new ApplicationManagerCls();
             }
         });
     }
-    ApplicationManagerCls.prototype.activate = (userId, data) => {
+    activate(userId, data) {
         return new Promise((resolve, reject) => {
             db.query('UPDATE app SET ? WHERE user_id = ?', [data, userId], (err, res) => {
                 if(err) {
@@ -236,7 +137,7 @@ const ApplicationManager = new ApplicationManagerCls();
             });
         })
     }
-    ApplicationManagerCls.prototype.updateValidityTime = (userId, ownerId) => {
+    updateValidityTime(userId, ownerId) {
         return new Promise( (resolve, reject) => {
             try {
                 let id = ownerId || userId;
@@ -272,7 +173,7 @@ const ApplicationManager = new ApplicationManagerCls();
             }
         });
     }
-    ApplicationManagerCls.prototype.disableUserApplication = (userId) => {
+    disableUserApplication(userId) {
         return new Promise((resolve, reject) => {
             db.query('UPDATE app SET status = 0 WHERE user_id = ?', [userId], (err, res) => {
             // ApplicationManagerCls.updateAll({userId: userId}, {status: 0}, (err, res) => {
@@ -285,8 +186,8 @@ const ApplicationManager = new ApplicationManagerCls();
         });
     }
 
-    ApplicationManagerCls.prototype.renewLicenseApi = (accessToken, data, cb) => {
-        ApplicationManagerCls.prototype._renewLicenseApi(accessToken, data).then((resp) => {
+    renewLicenseApi(accessToken, data, cb) {
+        this._renewLicenseApi(accessToken, data).then((resp) => {
             if(resp)
                 cb(null, {STATUS: 'SUCCESS', RESP: resp});
             else
@@ -296,7 +197,7 @@ const ApplicationManager = new ApplicationManagerCls();
         });
     }
 
-    ApplicationManagerCls.prototype._renewLicenseApi = (accessToken, data) => {
+    _renewLicenseApi(accessToken, data) {
         return new Promise(async (resolve, reject) => {
             let userId = await utils.getStoreOwnerUserId(accessToken);
             let today = moment().format('YYYY-MM-DD HH:MM:ss');
@@ -320,8 +221,103 @@ const ApplicationManager = new ApplicationManagerCls();
             }
         });
     }
-// }
+}
 
+const ApplicationManager = new ApplicationManagerCls();
+
+ApplicationManager.remoteMethod('getStatus', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/get-status', verb: 'get'},
+    description: 'For fetching app status.',
+});
+
+ApplicationManager.remoteMethod('checkUsedTrialOffer', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/check-used-trial-offer', verb: 'get'},
+    description: 'For fetching app status.',
+});
+
+ApplicationManager.remoteMethod('updateStatus', {
+    accepts: {
+        arg: 'apiParams',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-status', verb: 'post'},
+    description: 'Update application status'
+});
+
+ApplicationManager.remoteMethod('renewLicenseApi', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken = req && req.query.access_token;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }, {
+        arg: 'data',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/renew-license', verb: 'post'},
+    description: 'Renew the license'
+});
 
 export default router;
 export { ApplicationManager };

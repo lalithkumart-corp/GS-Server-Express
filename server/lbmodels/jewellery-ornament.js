@@ -1,28 +1,26 @@
 'use strict';
-let app = require('../server');
-let utils = require('../utils/commonUtils');
+let utils = require('../utils/commonUtils.js');
 let _ = require('lodash');
 let sh = require('shorthash');
-const { getStoreOwnerUserId } = require('../utils/commonUtils');
+const { getStoreOwnerUserId } = require('../utils/commonUtils.js');
 
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 import db from '../db/index.js';
 import express from 'express';
 const router = express.Router();
 export default router;
 
-export class JewellryOrnamentCls {
+export class JewelleryOrnamentCls {
     constructor() {
-        this.userService = new userService();
-        this.appManager = new ApplicationManagerCls();
-        this.jewelleryBillSettings = new JewelleryBillSettingsCls();
+        
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
     async createApiHandler(data, cb) {
         try {
-            //data = JewellryOrnament.normalizeData(data, 'create');
+            //data = JewelleryOrnament.normalizeData(data, 'create');
             if(!data.accessToken)
                 throw 'Access Token is missing';
             data._userId = await getStoreOwnerUserId(data.accessToken);
@@ -43,7 +41,7 @@ export class JewellryOrnamentCls {
 
     async updateApiHandler(data, cb) {
         try {
-            //data = JewellryOrnament.normalizeData(data, 'update');
+            //data = JewelleryOrnament.normalizeData(data, 'update');
             if(!data.accessToken)
                 throw 'Access Token is missing';
             data._userId = await getStoreOwnerUserId(data.accessToken);
@@ -115,7 +113,7 @@ export class JewellryOrnamentCls {
         try {
             params = JSON.parse(JSON.stringify(params));
 
-            let productCodeRow = await JewellryOrnament.app.models.ProductCode.getCodeId(params.productCodeSeries, params._userId);
+            let productCodeRow = await JewelleryOrnament.app.models.ProductCode.getCodeId(params.productCodeSeries, params._userId);
             if(options && options.updateAPI && params.productCodeNo && params.productCodeSeries) {
                 productCodeRow = {
                     id: productCodeRow.id,
@@ -237,11 +235,11 @@ export class JewellryOrnamentCls {
     }
 }
 
-export const JewellryOrnament = new JewellryOrnamentCls();
+export const JewelleryOrnament = new JewelleryOrnamentCls();
 
 
 
-JewellryOrnament.remoteMethod('createApiHandler', {
+JewelleryOrnament.remoteMethod('createApiHandler', {
     accepts: {
         arg: 'apiParams',
         type: 'object',
@@ -263,7 +261,7 @@ JewellryOrnament.remoteMethod('createApiHandler', {
     description: 'For inserting new ornament in DB.',
 });
 
-JewellryOrnament.remoteMethod('updateApiHandler', {
+JewelleryOrnament.remoteMethod('updateApiHandler', {
     accepts: {
         arg: 'apiParams',
         type: 'object',
@@ -285,7 +283,7 @@ JewellryOrnament.remoteMethod('updateApiHandler', {
     description: 'For updating the ornament in DB.',
 });
 
-JewellryOrnament.remoteMethod('deleteApiHandler', {
+JewelleryOrnament.remoteMethod('deleteApiHandler', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -313,7 +311,7 @@ JewellryOrnament.remoteMethod('deleteApiHandler', {
     description: 'For Deleting the ornament in DB.',
 });
 
-JewellryOrnament.remoteMethod('fetchList', {
+JewelleryOrnament.remoteMethod('fetchList', {
     accepts: [
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
@@ -331,7 +329,7 @@ JewellryOrnament.remoteMethod('fetchList', {
         },
     },
     http: {path: '/fetch-orn-list', verb: 'get'},
-    description: 'For fetching JewellryOrnament list.',
+    description: 'For fetching JewelleryOrnament list.',
 });
 
     

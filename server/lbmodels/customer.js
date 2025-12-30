@@ -6,219 +6,36 @@ let sh = require('shorthash');
 let utils = require('../utils/commonUtils');
 // let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
 const { default: db } = require('../db/index.js');
-const { Pledgebook } = require('./pledgebook.js');
-const { CustomerMetaDatalist } = require('./customer-metadata-list.js');
+// import { PledgebookCls } from './pledgebook.js';
+import PledgebookService from '../services/pledgebook.service.js';
+const { CustomerMetaDatalistCls } = require('./customer-metadata-list.js');
 const router = express.Router();
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
-class CustomerCls {
+export class CustomerCls {
+    constructor() {
+        this.customerMetaDatalist = new CustomerMetaDatalistCls();
+        this.pledgebookService = new PledgebookService();
+        // Remove direct instantiation to avoid circular dependency
+        // this.pledgebook = new PledgebookCls();
+    }
+
+    // get pledgebook() {
+    //     if (!this._pledgebook) {
+    //         const { PledgebookCls } = require('./pledgebook.js');
+    //         this._pledgebook = new PledgebookCls();
+    //     }
+    //     return this._pledgebook;
+    // }
+
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
-}
 
-export const Customer = new CustomerCls();
-
-// module.exports = function(Customer) {
-
-    Customer.remoteMethod('createCustomerAPIHandler', {
-        accepts: {
-            arg: 'data',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/create-new', verb: 'post'},
-        description: 'Create New Customer'
-    });
-
-    Customer.remoteMethod('updateCustomerAPIHandler', {
-        accepts: {
-            arg: 'data',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-customer-detail', verb: 'post'},
-        description: 'Updated the customer general information'
-    });
-
-    Customer.remoteMethod('fetchByCustIdApiHanlder', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let authToken = null;
-                    if(req && req.headers.authorization)
-                        authToken = req.headers.authorization || req.headers.Authorization;
-                    return authToken;
-                },
-                description: 'Arguments goes here',
-            }, {
-                arg: 'custIdArr', type: 'array', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let custIdArr = req && req.query.custIdArr;
-                    custIdArr = custIdArr ? JSON.parse(custIdArr) : [];
-                    return custIdArr;
-                },
-                description: 'Arguments goes here',
-        }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/fetch-by-custid', verb: 'get'},
-        description: 'For fetching customer detail.',
-    });
-
-    Customer.remoteMethod('getMetaData', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    var req = ctx && ctx.req;
-                    let access_token = req && req.query.access_token;
-                    return access_token;                    
-                },
-                description: 'Arguments goes here',
-            },{
-                arg: 'identifiers', type: 'array', http: (ctx) => {
-                    var req = ctx && ctx.req;
-                    let identifiers = req && req.query.identifiers;
-                    identifiers = identifiers ? JSON.parse(identifiers) : undefined;
-                    return identifiers;
-                },
-                description: 'Arguments goes here',
-            }, {
-                arg: 'params', type: 'object', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let offsetStart = 0;
-                    let limit = null;
-                    let filters = null;
-                    let cname = null;
-                    let fgname = null;
-                    let hashKey = null;
-                    let mobile = null;
-                    let onlyIsActive = false;
-                    try {
-                        offsetStart = req && req.query.offsetStart || 0;
-                        limit = req && req.query.limit || null;
-                        filters = req.query.filters || null;
-                        if(filters) {
-                            filters = JSON.parse(filters);
-                            cname = filters.cname || null;
-                            fgname = filters.fgname || null;
-                            hashKey = filters.hashKey || null;
-                            mobile = filters.mobile || null;
-                            onlyIsActive = filters.onlyIsActive;
-                        }
-                    } catch(e) {
-                        console.log(e);
-                    }                                        
-                    return {
-                        start: offsetStart,
-                        limit: limit,
-                        cname: cname,
-                        fgname: fgname,
-                        hashKey: hashKey,
-                        mobile: mobile,
-                        onlyIsActive: onlyIsActive
-                    }
-                }
-            }
-        ],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/metadata', verb: 'get'},
-        description: 'For fetching metadata from Customer Data.',
-    });
-
-    Customer.remoteMethod('getCustomerBasicListApi', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    var req = ctx && ctx.req;
-                    let access_token = req && req.query.access_token;
-                    return access_token;                    
-                },
-                description: 'Arguments goes here',
-            }, {
-                arg: 'params', type: 'object', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let params = req && req.query.params;
-                    params = params ? JSON.parse(params) : {};
-                    return params;
-                },
-                description: 'Arguments goes here',
-        }
-        ],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/customer-basic-list', verb: 'get'},
-        description: 'For fetching customer list.',
-    });
-
-    Customer.remoteMethod('updateBlackListAPI', {
-        accepts: {
-            arg: 'data',
-            type: 'object',
-            default: {
-                
-            },
-            http: {
-                source: 'body',
-            },
-        },
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-blacklist', verb: 'post'},
-        description: 'Updating the customer blacklist'
-    });
-
-
-    Customer.createCustomerAPIHandler = async (data) => {
+    async createCustomerAPIHandler(data) {
         try {
             data._userId = await utils.getStoreOwnerUserId(data.accessToken);
-            let obj = await Customer.handleCustomerData(data);
+            let obj = await this.handleCustomerData(data);
             return {STATUS: "SUCCESS", CUSTOMER_ROW: obj.record};
         } catch(e) {
             // logger.error(GsErrorCtrl.create({className: 'Customer', methodName: 'createCustomerAPIHandler', cause: e, message: 'Exception in Create-new Customer API'}));
@@ -226,12 +43,12 @@ export const Customer = new CustomerCls();
         }
     }
 
-    Customer.getMetaData = async (accessToken, identifiers, params, cb) => {
+    async getMetaData(accessToken, identifiers, params, cb) {
         try{
             let metaData = {};
-            Customer.metaData = null;
+            this.metaData = null;
             let userId = await utils.getStoreOwnerUserId(accessToken);
-            metaData = await Customer._getMetaData(userId, identifiers, params);
+            metaData = await this._getMetaData(userId, identifiers, params);
             // return Promise.resolve(metaData);
             return metaData;
         } catch(e) {
@@ -240,49 +57,49 @@ export const Customer = new CustomerCls();
         }
     }
 
-    Customer._getMetaData = (userId, identifiers, params) => {
+    async _getMetaData(userId, identifiers, params) {
         return new Promise( async (resolve, reject) => {
             try {
                 let metaData = {};
                 for(let identifier of identifiers) {
                     switch(identifier) {
                         case 'all':
-                            let allData = await Customer._getMetaDataFromDB('all', userId, params);
+                            let allData = await this._getMetaDataFromDB('all', userId, params);
                             metaData.customers = {
                                 list: allData.results,
                                 count: allData.totalCount
                             };
                             break;
                         case 'customerNames':
-                            let customerNames = await Customer._getMetaDataFromDB('name', userId, params);
+                            let customerNames = await this._getMetaDataFromDB('name', userId, params);
                             metaData.customerNames = customerNames.results;
                             break;
                         case 'guardianNames':
-                            let guardianNames = await Customer._getMetaDataFromDB('gaurdianName', userId, params);
+                            let guardianNames = await this._getMetaDataFromDB('gaurdianName', userId, params);
                             metaData.guardianNames = guardianNames.results;
                             break;
                         case 'address':
-                            let address = await Customer._getMetaDataFromDB('address', userId, params);
+                            let address = await this._getMetaDataFromDB('address', userId, params);
                             metaData.address = address.results;
                             break;
                         case 'place':
-                            let place = await Customer._getMetaDataFromDB('place', userId, params);
+                            let place = await this._getMetaDataFromDB('place', userId, params);
                             metaData.place = place.results;
                             break;
                         case 'city':
-                            let city = await Customer._getMetaDataFromDB('city', userId, params);
+                            let city = await this._getMetaDataFromDB('city', userId, params);
                             metaData.city = city.results;
                             break;
                         case 'mobile':
-                            let mobile = await Customer._getMetaDataFromDB('mobile', userId, params);
+                            let mobile = await this._getMetaDataFromDB('mobile', userId, params);
                             metaData.mobile = mobile.results;
                             break;                
                         case 'pincode':
-                            let pincode = await Customer._getMetaDataFromDB('pincode', userId, params);
+                            let pincode = await this._getMetaDataFromDB('pincode', userId, params);
                             metaData.pincode = pincode.results;
                             break;
                         case 'otherDetails':
-                            let otherDetails = await Customer._getMetaDataFromDB('otherDetails', userId, params);
+                            let otherDetails = await this._getMetaDataFromDB('otherDetails', userId, params);
                             metaData.otherDetails = otherDetails;
                             break;
                     }
@@ -295,13 +112,13 @@ export const Customer = new CustomerCls();
         });
     }
 
-    Customer.handleCustomerData = async (params) => {
+    async handleCustomerData(params) {
         //TODO: Valide the input arguments
-        let hashKey = Customer.generateHashKey(params);
-        let customerData = await Customer.isAlreadyExists(hashKey, {onlyActive: true, _userId: params._userId});
+        let hashKey = this.generateHashKey(params);
+        let customerData = await this.isAlreadyExists(hashKey, {onlyActive: true, _userId: params._userId});
         if(!customerData) {
             params.hashKey = hashKey;
-            customerData = await Customer.saveCustomerData(params);
+            customerData = await this.saveCustomerData(params);
         } else {
             // Customer Info should be updated from 'Customer Detail -> General Info" UI page
            // await Customer.checkForCustomerDataUpdate(customerData, params);  
@@ -312,7 +129,7 @@ export const Customer = new CustomerCls();
         }
     }
 
-    Customer.saveCustomerData = (params) => {
+    saveCustomerData(params) {
         return new Promise( (resolve, reject) => {
             let userId = params._userId;
             let dbInputValues = {
@@ -353,11 +170,11 @@ export const Customer = new CustomerCls();
         });
     }
 
-    Customer._getMetaDataFromDB = (identifier, userId, params) => {
+    async _getMetaDataFromDB(identifier, userId, params) {
         return new Promise( (resolve, reject) => {
             // let dataSource = Customer.dataSource;
             if(identifier == 'otherDetails') {
-                CustomerMetaDatalist.getList(userId, params)
+                this.customerMetaDatalist.getList(userId, params)
                 .then(
                     (success) => {
                         let bucket = [];
@@ -371,9 +188,9 @@ export const Customer = new CustomerCls();
                     }
                 )
             } else {
-                if(Customer.metaData) {
+                if(this.metaData) {
                     let bucket = [];
-                    _.each(Customer.metaData, (anItem, index) => {
+                    _.each(this.metaData, (anItem, index) => {
                         if(identifier == 'all')
                             bucket.push(anItem);
                         else
@@ -383,14 +200,14 @@ export const Customer = new CustomerCls();
                 }                
 
                 let promise1 = new Promise( (resolve, reject) => {
-                    let query = Customer.getQuery('all', {userId: userId, ...params});
+                    let query = this.getQuery('all', {userId: userId, ...params});
                     query = query.replace(/REPLACE_USERID/g, userId);
                     db.query(query, (err, result) => {                
                         if(err) {
                             return reject(err);
                         } else {
-                            let parsedResult = Customer.parseMetaData(result);
-                            Customer.metaData = parsedResult;
+                            let parsedResult = this.parseMetaData(result);
+                            this.metaData = parsedResult;
                             let bucket = [];
                             _.each(parsedResult, (anItem, index) => {
                                 if(identifier == 'all')
@@ -404,7 +221,7 @@ export const Customer = new CustomerCls();
                 });
 
                 let promise2 = new Promise( (resolve, reject) => {
-                    let qry = Customer.getQuery('countQuery', {userId: userId, ...params});
+                    let qry = this.getQuery('countQuery', {userId: userId, ...params});
                     qry = qry.replace(/REPLACE_USERID/g, userId);
                     db.query(qry, (err, res) => {
                         if(err) {
@@ -451,7 +268,7 @@ export const Customer = new CustomerCls();
         });
     }
 
-    Customer.parseMetaData = (rawResult) => {
+    parseMetaData(rawResult) {
         let formatted = [];
         _.each(rawResult, (aRes, index) => {
             let obj = {};
@@ -488,14 +305,14 @@ export const Customer = new CustomerCls();
         return formatted;
     }
 
-    Customer.getQuery = (identifier, params) => {
+    getQuery(identifier, params) {
         let sql = '';
         let whereCondition = '';
         let limitOffset = '';
         let whereClause = '';
         switch(identifier) {
             case 'all':
-                whereCondition = Customer._getWhereCondition(params);
+                whereCondition = this._getWhereCondition(params);
                 sql = `SELECT 
                             customer_REPLACE_USERID.CustomerId AS customerId,
                             customer_REPLACE_USERID.UserId AS userId,
@@ -529,7 +346,7 @@ export const Customer = new CustomerCls();
                 break;
             case 'customer-list-basic':
                 sql = SQL.CUSTOMER_LIST_BASIC;
-                whereClause = Customer._getWhereCondition(params);
+                whereClause = this._getWhereCondition(params);
                 if(params.limit)
                     limitOffset = `LIMIT ${params.limit} OFFSET ${params.start||0}`;
 
@@ -539,7 +356,7 @@ export const Customer = new CustomerCls();
                 break;
             case 'customer-list-detailed':
                 sql = SQL.CUSTOMER_LIST_DETAILED;
-                whereClause = Customer._getWhereCondition(params);
+                whereClause = this._getWhereCondition(params);
                 if(params.limit)
                     limitOffset = `LIMIT ${params.limit} OFFSET ${params.start||0}`;
 
@@ -548,7 +365,7 @@ export const Customer = new CustomerCls();
 
                 break;
             case 'countQuery': 
-                whereCondition = Customer._getWhereCondition(params);
+                whereCondition = this._getWhereCondition(params);
                 sql = `SELECT
                             COUNT(*) AS count
                         FROM customer_REPLACE_USERID
@@ -578,7 +395,7 @@ export const Customer = new CustomerCls();
         return sql;
     }
 
-    Customer._getWhereCondition = (params) => {
+    _getWhereCondition(params) {
         let whereCondition = '';
         let filters = [];
         if(params.userId)
@@ -607,7 +424,7 @@ export const Customer = new CustomerCls();
     }
 
     //TODO: missed to check with userId
-    Customer.generateHashKey = (params) => {
+    generateHashKey(params) {
         params.pincode = params.pinCode || params.pincode || '';
         let cname = (params.cname)?params.cname.toLowerCase():params.cname;
         let gaurdianName = (params.gaurdianName)?params.gaurdianName.toLowerCase():params.gaurdianName;
@@ -620,7 +437,7 @@ export const Customer = new CustomerCls();
     }
 
     //TODO: check with respect to UserId also in where condition
-    Customer.isAlreadyExists = (hashKey, optional) => {
+    isAlreadyExists(hashKey, optional) {
         return new Promise( (resolve, reject) => {
             /*let whereCondition = {hashKey: hashKey}
 
@@ -669,7 +486,7 @@ export const Customer = new CustomerCls();
         });
     }
 
-    Customer.checkForCustomerDataUpdate = async (dbCustomerData, params) => {
+    async checkForCustomerDataUpdate(dbCustomerData, params) {
         // No Need to update the "Other Details" section. The "Other Details" data shoud be updated only from the "Customer Detail -> Notes" UI page.
         /*return new Promise( (resolve, reject) => {
             let otherDetailsDB = dbCustomerData.otherDetails;
@@ -703,22 +520,22 @@ export const Customer = new CustomerCls();
         });*/    
     }
 
-    Customer.updateCustomerAPIHandler = async (customerDetail) => {
+    async updateCustomerAPIHandler(customerDetail) {
         try{                        
             customerDetail.picture.id = customerDetail.picture.imageId || null;
-            await Customer.updateDetails(customerDetail);
+            await this.updateDetails(customerDetail);
             return {STATUS: 'SUCCESS', MSG: 'Updated the Customer detail successfully'};
         } catch(e) {
             return {STATUS: 'ERROR', ERROR: e, MSG: (e?e.message:'')};
         }
     }
 
-    Customer.updateDetails = async (params) => {
+    async updateDetails(params) {
         try{
             params._userId = await utils.getStoreOwnerUserId(params.accessToken);
 
             //TODO: DELETE the existing image
-            let verification = await Customer.checkInputDetails(params);
+            let verification = await this.checkInputDetails(params);
             if(!verification.STATUS) {
                 let msg = 'Verification of customer detail failed.';
                 if(verification.CODE == 'SIMILAR_ALREADY_EXISTS')
@@ -728,7 +545,7 @@ export const Customer = new CustomerCls();
             params = verification.params;
             
             // let response = await Customer.updateAll({customerId: params.customerId}, {name: params.cname, imageId: params.picture.id, gaurdianName: params.gaurdianName, address: params.address, place: params.place, city: params.city, mobile: params.mobile, secMobile: params.secMobile, pincode: params.pinCode, otherDetails: params.otherDetails, hashKey: params._hashKey});
-            await Customer._update(params);
+            await this._update(params);
             return true; //response;
         } catch(e) {
             console.log(e);
@@ -736,7 +553,7 @@ export const Customer = new CustomerCls();
         }
     }
 
-    Customer._update = (params) => {
+    _update(params) {
         return new Promise((resolve, reject) => {
             let modifiedDate = new Date().toISOString().replace('T', ' ').slice(0,23);
             let query = SQL.UPDATE_CUSTOMER;
@@ -763,12 +580,12 @@ export const Customer = new CustomerCls();
         });
     }
 
-    Customer.checkInputDetails = async (params) => {
+    async checkInputDetails(params) {
         if(params.mobile && params.mobile == 'null')
             params.mobile = null;
-        let hashKey = Customer.generateHashKey(params);
+        let hashKey = this.generateHashKey(params);
         params._hashKey = hashKey;
-        let customerData = await Customer.isAlreadyExists(hashKey, {ignoreCustId: params.customerId, onlyActive: true, _userId: params._userId});
+        let customerData = await this.isAlreadyExists(hashKey, {ignoreCustId: params.customerId, onlyActive: true, _userId: params._userId});
         if(customerData) {
             params._existingCustHashkey = customerData.hashKey;
             return {
@@ -784,22 +601,225 @@ export const Customer = new CustomerCls();
         }
     }
 
-    Customer.updateByMergingIntoOther = async (params) => {
+    async updateByMergingIntoOther(params) {
         try {
             let _userId = await utils.getStoreOwnerUserId(params.accessToken);
             params._userId = _userId;
-            params.pledgebookTableName = await Pledgebook.getPledgebookTableName(_userId);
-            params._customerIdForMerge = await Customer.getIdByHashKey(params.custHashkeyForMerge, params._userId);
-            params._customerIdForMergeInto = await Customer.getIdByHashKey(params.custHashkeyForMergeInto, params._userId);
+            params.pledgebookTableName = await this.pledgebookService.getPledgebookTableName(_userId);
+            params._customerIdForMerge = await this.getIdByHashKey(params.custHashkeyForMerge, params._userId);
+            params._customerIdForMergeInto = await this.getIdByHashKey(params.custHashkeyForMergeInto, params._userId);
             if(!params._customerIdForMerge || !params._customerIdForMergeInto)
                 throw new Error('Customer not found, Please enter valid Hashkey');
-            await Customer._updateByMergingIntoOther(params);
+            await this._updateByMergingIntoOther(params);
             return {STATUS: 'success', message: 'Successfully merged'};
         } catch(e) {
             return {STATUS: 'error', ERROR: e, message: 'Error while updating the customer by merging into other customer'};
         }
     }
 
+
+}
+
+export const Customer = new CustomerCls();
+
+// module.exports = function(Customer) {
+
+Customer.remoteMethod('createCustomerAPIHandler', {
+    accepts: {
+        arg: 'data',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/create-new', verb: 'post'},
+    description: 'Create New Customer'
+});
+
+Customer.remoteMethod('updateCustomerAPIHandler', {
+    accepts: {
+        arg: 'data',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-customer-detail', verb: 'post'},
+    description: 'Updated the customer general information'
+});
+
+Customer.remoteMethod('fetchByCustIdApiHanlder', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let authToken = null;
+                if(req && req.headers.authorization)
+                    authToken = req.headers.authorization || req.headers.Authorization;
+                return authToken;
+            },
+            description: 'Arguments goes here',
+        }, {
+            arg: 'custIdArr', type: 'array', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let custIdArr = req && req.query.custIdArr;
+                custIdArr = custIdArr ? JSON.parse(custIdArr) : [];
+                return custIdArr;
+            },
+            description: 'Arguments goes here',
+    }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/fetch-by-custid', verb: 'get'},
+    description: 'For fetching customer detail.',
+});
+
+Customer.remoteMethod('getMetaData', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                var req = ctx && ctx.req;
+                let access_token = req && req.query.access_token;
+                return access_token;                    
+            },
+            description: 'Arguments goes here',
+        },{
+            arg: 'identifiers', type: 'array', http: (ctx) => {
+                var req = ctx && ctx.req;
+                let identifiers = req && req.query.identifiers;
+                identifiers = identifiers ? JSON.parse(identifiers) : undefined;
+                return identifiers;
+            },
+            description: 'Arguments goes here',
+        }, {
+            arg: 'params', type: 'object', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let offsetStart = 0;
+                let limit = null;
+                let filters = null;
+                let cname = null;
+                let fgname = null;
+                let hashKey = null;
+                let mobile = null;
+                let onlyIsActive = false;
+                try {
+                    offsetStart = req && req.query.offsetStart || 0;
+                    limit = req && req.query.limit || null;
+                    filters = req.query.filters || null;
+                    if(filters) {
+                        filters = JSON.parse(filters);
+                        cname = filters.cname || null;
+                        fgname = filters.fgname || null;
+                        hashKey = filters.hashKey || null;
+                        mobile = filters.mobile || null;
+                        onlyIsActive = filters.onlyIsActive;
+                    }
+                } catch(e) {
+                    console.log(e);
+                }                                        
+                return {
+                    start: offsetStart,
+                    limit: limit,
+                    cname: cname,
+                    fgname: fgname,
+                    hashKey: hashKey,
+                    mobile: mobile,
+                    onlyIsActive: onlyIsActive
+                }
+            }
+        }
+    ],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/metadata', verb: 'get'},
+    description: 'For fetching metadata from Customer Data.',
+});
+
+Customer.remoteMethod('getCustomerBasicListApi', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                var req = ctx && ctx.req;
+                let access_token = req && req.query.access_token;
+                return access_token;                    
+            },
+            description: 'Arguments goes here',
+        }, {
+            arg: 'params', type: 'object', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let params = req && req.query.params;
+                params = params ? JSON.parse(params) : {};
+                return params;
+            },
+            description: 'Arguments goes here',
+    }
+    ],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/customer-basic-list', verb: 'get'},
+    description: 'For fetching customer list.',
+});
+
+Customer.remoteMethod('updateBlackListAPI', {
+    accepts: {
+        arg: 'data',
+        type: 'object',
+        default: {
+            
+        },
+        http: {
+            source: 'body',
+        },
+    },
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-blacklist', verb: 'post'},
+    description: 'Updating the customer blacklist'
+});
+
+
+    
+    
     Customer.remoteMethod('updateByMergingIntoOther', {
         accepts: {
             arg: 'data',
@@ -917,7 +937,7 @@ export const Customer = new CustomerCls();
             let _userId = await utils.getStoreOwnerUserId(data.accessToken);
             let action = data.status?'Enabled':'Disabled';
             if(!data.status) { //ToDisable, then the customer should not have any pending bills
-                let pendingBills = await Pledgebook._getPendingBillsList(data.custId, _userId);
+                let pendingBills = await this.pledgebookService._getPendingBillsList(data.custId, _userId);
                 if(pendingBills.length > 0)
                     throw new Error('This Customer has Pending Bills. Redeem those bills to disable this customer...');
             } else { //To enable, there should not be any already existing hashkey

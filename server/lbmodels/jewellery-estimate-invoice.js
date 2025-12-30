@@ -1,6 +1,8 @@
 'use strict';
 // let app = require('../server');
 let utils = require('../utils/commonUtils');
+const { remoteMethod } = require('../routes/remoteMethod.js');
+
 let _ = require('lodash');
 // let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
 // let logger = app.get('logger');
@@ -13,8 +15,7 @@ export default router;
 
 export class JwlEstimateInvoiceCls {
     constructor() {
-        this.userService = new userService();
-        this.appManager = new ApplicationManagerCls();
+
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);

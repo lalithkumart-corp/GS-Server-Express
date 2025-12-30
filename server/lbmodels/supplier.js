@@ -1,5 +1,6 @@
 'use strict';
 
+const { remoteMethod } = require('../routes/remoteMethod.js');
 
 import db from '../db/index.js';
 import express from 'express';

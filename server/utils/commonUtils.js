@@ -1,6 +1,5 @@
 import db from '../db/index.js';
 
-// let app = require('../server.js')
 import {appConfig} from '../config/index.js';
 // let admin = require('../firebase-service');
 let path = require('path');
