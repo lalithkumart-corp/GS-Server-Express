@@ -3,8 +3,10 @@ import db from '../db/index.js';
 import {appConfig} from '../config/index.js';
 // let admin = require('../firebase-service');
 let path = require('path');
-const crypto = require('crypto');
+// const crypto = require('crypto');
 const { verifyJwtToken } = require('../components/jwt.js');
+import crypto from 'crypto';
+
 
 // Getting userId ie., Store owner's user id
 // const getStoreOwnerUserId = (accessToken) => {
@@ -203,7 +205,10 @@ export const getCurrentDateTimeInUTCForDB = () => {
 
 // Encryption function
 export const encrypt = (text, password) => {
-    const cipher = crypto.createCipher('aes-256-cbc', password);
+    // Node.js v10+ deprecates createCipher, use createCipheriv instead
+    const key = crypto.createHash('sha256').update(password).digest();
+    const iv = Buffer.alloc(16, 0); // Initialization vector (all zeros)
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return encrypted;
@@ -211,7 +216,9 @@ export const encrypt = (text, password) => {
 
 // Decryption function
 export const decrypt = (encryptedText, password) => {
-    const decipher = crypto.createDecipher('aes-256-cbc', password);
+    const key = crypto.createHash('sha256').update(password).digest();
+    const iv = Buffer.alloc(16, 0); // Initialization vector (all zeros)
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;

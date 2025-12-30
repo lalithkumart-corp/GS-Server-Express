@@ -144,18 +144,25 @@ export class JewelleryOrnamentCls {
 
     async _create(params, hashKey) {
         try {
-            let result = await this.create({
-                userId: params._userId,
-                metal: params.metal,
-                itemName: params.productName,
-                itemCategory: params.productCategory,
-                itemSubCategory: params.productSubCategory,
-                dimension: params.productDimension,
-                //code: params.productCode,
-                codeId: params.productCodeTableId,
-                hashKey: hashKey || params._hashKey
-            });
-            return result;
+            await db.query(
+                `INSERT INTO orn_list_jewellery (user_id, metal, item_name, item_category, item_subcategory, dimension, code_id, hashkey)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    params._userId,
+                    params.metal,
+                    params.productName,
+                    params.productCategory,
+                    params.productSubCategory,
+                    params.productDimension,
+                    params.productCodeTableId,
+                    hashKey || params._hashKey
+                ]
+            );
+            const [ornRow] = await db.query(
+                'SELECT * FROM orn_list_jewellery WHERE hashkey = ? ORDER BY id DESC LIMIT 1',
+                [hashKey || params._hashKey]
+            );
+            return ornRow;
         } catch(e) {
             throw e;
         }
@@ -211,23 +218,34 @@ export class JewelleryOrnamentCls {
     _isAlreadyExists(hashKey, optional) {
         return new Promise( (resolve, reject) => {
             let whereCondition = {hashKey: hashKey}
+            let sql = `SELECT * FROM orn_list_jewellery WHERE hashkey = ?`;
+            let queryParams = [hashKey];
 
             if(optional) {
-                if(optional.ignoreOrnId) // in "Update-orn" scenario
+                if(optional.ignoreOrnId) { // in "Update-orn" scenario
                     whereCondition.id = {neq: optional.ignoreOrnId};
-                if(optional.onlyActive)
+                    sql += ` AND id != ?`;
+                    queryParams.push(optional.ignoreOrnId);
+                }
+                if(optional.onlyActive) {
                     whereCondition.status = {neq: 0};
-                if(optional.userId)
+                    sql += ` AND status != 0`;
+                }
+                if(optional.userId) {
                     whereCondition.userId = optional.userId;
+                    sql += ` AND user_id = ?`;
+                    queryParams.push(optional.userId);
+                }
             }
-
-            this.findOne({where: whereCondition}, (err, result) => {
+            // ...(whereCondition.id? [whereCondition.id]:[]), ...(whereCondition.userId? [whereCondition.userId]:[])
+            db.query(sql, queryParams, (err, result) => {
+            // this.findOne({where: whereCondition}, (err, result) => {
                 if(err) {
                     //TODO: Log the error
                     reject(err);
                 } else {
-                    if(result)
-                        resolve(result);
+                    if(result && result.length>0)
+                        resolve(result[0]);
                     else
                         resolve(false);
                 }

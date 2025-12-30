@@ -3,13 +3,13 @@
 import db from '../db/index.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
-let utils = require('../utils/commonUtils');
+let utils = require('../utils/commonUtils.js');
 import express from 'express';
 
 const router = express.Router();
 export default router;
 
-export class GsuserCls {
+export class JewelleryTagTemplatesCls {
     constructor() {
         
     }
@@ -42,30 +42,31 @@ export class GsuserCls {
     }
 }
 
+export const JewelleryTagTemplates = new JewelleryTagTemplatesCls();
 
-    JewelleryTagAvlTemplates.remoteMethod('fetchListApiHandler', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken;
-                    if(req && req.headers.authorization)
-                        accessToken = req.headers.authorization;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
+JewelleryTagTemplates.remoteMethod('fetchListApiHandler', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken;
+                if(req && req.headers.authorization)
+                    accessToken = req.headers.authorization;
+                return accessToken;
             },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
         },
-        http: {path: '/fetch-list', verb: 'get'},
-        description: 'For fetching tag avl list.',
-    });
-    
+    },
+    http: {path: '/fetch-list', verb: 'get'},
+    description: 'For fetching tag avl list.',
+});
+
     
 let SQL = {
     FETCH_TAG_TEMPLATES: `SELECT 

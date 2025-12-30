@@ -1,16 +1,13 @@
 import express from 'express';
 import { appConfig, envConfig } from '../config/index.js';
-import pledgebookRouter from './pledgebook.routes.js';
 import pledgebookRouterLb from '../lbmodels/pledgebook.js';
 import customerRouterLb from '../lbmodels/customer.js';
-import userRouter from './user.routes.js';
-import authRouter from './auth.routes.js';
 import GsuserRouterLb from '../lbmodels/gs-user.js';
-
 import customerAttachmentRouterLb from '../lbmodels/customer-attachment.js';
 import fundTransactionRouterLb from '../lbmodels/fund-transaction.js';
 import jwlBillSettingsRouterLb from '../lbmodels/jewellery-bill-settings.js';
 import jwlTagSettingsRouterLb from '../lbmodels/jewellery-tag-settings.js';
+import jwlTagTemplatesRouterLb from '../lbmodels/jewellery-tag-templates.js';
 import loanBillTemplateRouterLb from '../lbmodels/loan-bill-template.js';
 import AppManagerRouterLb from '../lbmodels/app-manager.js';
 import UserPreferenceRouterLb from '../lbmodels/user-preferences.js';
@@ -49,6 +46,7 @@ router.use('/api/AppManagers', AppManagerRouterLb);
 router.use('/api/UserPreferences', UserPreferenceRouterLb);
 router.use('/api/LoanBillTemplates', loanBillTemplateRouterLb);
 router.use('/api/JewelleryTagSettings', jwlTagSettingsRouterLb);
+router.use('/api/JewelleryTagAvlTemplates', jwlTagTemplatesRouterLb);
 router.use('/api/JewelleryBillSettings', jwlBillSettingsRouterLb);
 router.use('/api/FundTransactions', fundTransactionRouterLb);
 router.use('/api/FundAccounts', fundAccountsRouterLb);
@@ -70,6 +68,4 @@ router.use('/api/Udhaars', udhaarRouterLb);
 router.use('/api/UdhaarSettings', udhaarSettingsRouterLb);
 router.use('/api/Analytics', analyticsRouterLb);
 
-router.use('/user', userRouter);
-router.use('/auth', authRouter);
 export default router;

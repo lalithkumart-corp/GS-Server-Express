@@ -123,15 +123,15 @@ export class JewelleryBillSettingsCls {
 
             let updateParams = {};
             if(payload.customCss)
-                updateParams.customCss = JSON.stringify(payload.customCss);
+                updateParams.custom_css = JSON.stringify(payload.customCss);
             if(payload.selectedTemplate)
-                updateParams.selectedTemplate = payload.selectedTemplate;
+                updateParams.selected_template = payload.selectedTemplate;
             if(payload.customArgs)
-                updateParams.customArgs = JSON.stringify(payload.customArgs);
+                updateParams.custom_args = JSON.stringify(payload.customArgs);
 
-            updateParams.billSeries = payload.billSeries;
+            updateParams.bill_series = payload.billSeries;
             
-            updateParams.billNo = payload.billNo;
+            updateParams.bill_no = payload.billNo;
 
             await db.query(`UPDATE jewellery_bill_settings SET ? WHERE user_id = ? AND category = ?`, [updateParams, payload._userId, category]);
         }else

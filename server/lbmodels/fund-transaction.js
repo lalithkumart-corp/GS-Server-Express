@@ -1,7 +1,7 @@
 'use strict';
 let _ = require('lodash');
 let utils = require('../utils/commonUtils');
-let dateformat = require('dateformat');
+import dateFormat from 'dateformat';
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 import db from '../db/index.js';
 import express from 'express';
@@ -35,7 +35,7 @@ export class FundTransactionCls {
             let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
             let categId = await this._getOrCreateCategoryId(userId, apiParams.category);
             let sql = SQL.CASH_TRANSACTION_IN.replace(/REPLACE_USERID/g, userId);
-            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.amount, 0, categId, apiParams.remarks, apiParams.paymentMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
+            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateFormat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.amount, 0, categId, apiParams.remarks, apiParams.paymentMode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
             db.query(sql, queryValues, (err, res) => {
                 if(err){
                     reject(err);
@@ -64,7 +64,7 @@ export class FundTransactionCls {
             let destAccDetail = apiParams.destinationAccountDetail;
             let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
             let categId = await this._getOrCreateCategoryId(userId, apiParams.category);
-            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateformat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 0, apiParams.amount, categId, apiParams.remarks,
+            let queryValues = [userId, apiParams.customerId, apiParams.accountId, dateFormat(apiParams.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 0, apiParams.amount, categId, apiParams.remarks,
                 apiParams.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
 
             let sql = SQL.CASH_TRANSACTION_OUT.replace(/REPLACE_USERID/g, userId);
@@ -714,7 +714,7 @@ export class FundTransactionCls {
             let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
             let interestAndOtherCharges = parseFloat(params.interestVal);
             let categId = await this._getOrCreateCategoryId(params._userId, 'Udhaar');
-            let qv = [params._userId, params.customerId, params.accountId, params._uniqId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, categId, params._billNo,
+            let qv = [params._userId, params.customerId, params.accountId, params._uniqId, dateFormat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, categId, params._billNo,
             params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
 
             let sql = SQL.INTERNAL_UDHAAR_TRANSACTION;
@@ -874,7 +874,7 @@ export class FundTransactionCls {
             let destAccDetail = params.destinationAccountDetail;
             let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
             let interestAndOtherCharges = parseFloat(params.interestVal);
-            let qv = [params.customerId, params.accountId, dateformat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, params._billNo,
+            let qv = [params.customerId, params.accountId, dateFormat(params.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), interestAndOtherCharges, params.amount, params._billNo,
             params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, currentTImeInUTCTimezone, params.udhaarUid, params._userId];
 
             let sql = SQL.INTERNAL_UDHAAR_TRANSACTION_UPDATE;
@@ -1088,7 +1088,7 @@ export class FundTransactionCls {
             let currentTImeInUTCTimezone = utils.getCurrentDateTimeInUTCForDB();
             let categId = await this._getOrCreateCategoryId(userId, params.category);
 
-            let queryValues = [userId, params.customerId, toAcc, params.uniqueIdentifier, dateformat(params.dateVal, 'yyyy-mm-dd HH:MM:ss', true),
+            let queryValues = [userId, params.customerId, toAcc, params.uniqueIdentifier, dateFormat(params.dateVal, 'yyyy-mm-dd HH:MM:ss', true),
                  params.paymentDetails.value, 0, categId, params.remarks, mode, currentTImeInUTCTimezone, currentTImeInUTCTimezone];
             
             let sql = SQL.ADD_CASH_FOR_BILL;
@@ -1158,7 +1158,7 @@ export class FundTransactionCls {
         return new Promise(async (resolve, reject) => {
             let userId = await utils.getStoreOwnerUserId(params.accessToken);
             let categId = await this._getOrCreateCategoryId(userId, params.category);
-            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), params.amount, categId, params.remarks, params.paymentMode, params.transactionId, userId];
+            let queryValues = [params.accountId, params.customerId, dateFormat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), params.amount, categId, params.remarks, params.paymentMode, params.transactionId, userId];
             let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_IN;
             sql = sql.replace(/REPLACE_USERID/g, userId);
             db.query(sql, queryValues, (err, res) => {
@@ -1188,7 +1188,7 @@ export class FundTransactionCls {
             let userId = await utils.getStoreOwnerUserId(params.accessToken);
             let destAccDetail = params.destinationAccountDetail;
             let categId = await this._getOrCreateCategoryId(userId, params.category);
-            let queryValues = [params.accountId, params.customerId, dateformat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 
+            let queryValues = [params.accountId, params.customerId, dateFormat(params.transactionDate, 'yyyy-mm-dd HH:MM:ss', true), 
                 params.amount, categId, params.remarks, 
                 params.paymentMode, destAccDetail.accNo, destAccDetail.ifscCode, params.transactionId, userId];
             let sql = SQL.UPDATE_TRANSACTION_FOR_CASH_OUT;

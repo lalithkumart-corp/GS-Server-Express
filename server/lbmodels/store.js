@@ -71,17 +71,17 @@ export class StoreCls {
     _updateInfo(apiParams) {
         return new Promise( (resolve, reject) => {
             let tableData = {
-                storeName: apiParams.storeName,
+                store_name: apiParams.storeName,
                 address: apiParams.address,
                 place: apiParams.place,
                 city: apiParams.city,
                 pincode: apiParams.pincode,
                 mobile: apiParams.mobile,
                 email: apiParams.email,
-                gstNo: apiParams.gstNo,
-                loanLicenseName: apiParams.loanLicenseName,
-                loanBillAddrLine1: apiParams.loanBillAddrLine1,
-                loanBillAddrLine2: apiParams.loanBillAddrLine2,
+                gst_no: apiParams.gstNo,
+                loan_license_name: apiParams.loanLicenseName,
+                loan_bill_address_line1: apiParams.loanBillAddrLine1,
+                loan_bill_address_line2: apiParams.loanBillAddrLine2,
             };
             db.query(`SELECT * FROM stores WHERE user_id = ?`, [apiParams._userId], (error, res) => {
                 if(error) {

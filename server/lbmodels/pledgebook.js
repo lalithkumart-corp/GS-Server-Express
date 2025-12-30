@@ -882,7 +882,7 @@ export class PledgebookCls {
             let res;
             if(fetchFundTrns) {
                 let uuidArray = billNoWithUUIDArray.map((anObj) => anObj.uuid);
-                this.fundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
+                res = await this.fundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
             }
             let billNoArray = billNoWithUUIDArray.map((anObj) => anObj.billNo);
             let pledgebookTableName = await this.service.getPledgebookTableName(_userId);
