@@ -5,14 +5,14 @@ let utils = require('../utils/commonUtils');
 
 import db from '../db/index.js';
 import express from 'express';
-import { FundTransaction } from './fund-transaction.js';
+import { FundTransactionCls } from './fund-transaction.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
 class CommonCls {
     constructor() {
-
+        this.fundTransaction = new FundTransactionCls();
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
@@ -637,7 +637,7 @@ class CommonCls {
                 apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
                 switch(apiParams.identifier) {
                     case 'fund_transaction':
-                        await FundTransaction.addTag(apiParams);
+                        await this.fundTransaction.addTag(apiParams);
                         // await CommonCls.prototype.app.models.FundTransaction.prototype.addTag(apiParams);
                         break;
                 }
@@ -670,7 +670,7 @@ class CommonCls {
                 apiParams._userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
                 switch(apiParams.identifier) {
                     case 'fund_transaction':
-                        await FundTransaction.removeTag(apiParams);
+                        await this.fundTransaction.removeTag(apiParams);
                         // await CommonCls.prototype.app.models.FundTransaction.prototype.removeTag(apiParams);
                         break;
                 }

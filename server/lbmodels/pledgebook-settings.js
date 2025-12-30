@@ -5,54 +5,54 @@ import db from '../db/index.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
-class PledgebooksettingsCls {
+export class PledgebooksettingsCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }
 
     updateLastBillDetail(data) {
-    return new Promise((resolve, reject) => {
-        let userId = data._userId;
+        return new Promise((resolve, reject) => {
+            let userId = data._userId;
 
-        db.query('SELECT * FROM pledgebook_settings WHERE user_id = ?', [userId], (err, res) => {
-            if(err) {
-                return reject(err);
-            } else {
-                if(res && res.length > 0) {
-                    db.query('UPDATE pledgebook_settings SET bill_series = ?, last_created_bill_no = ? WHERE user_id = ?', [data.billSeries, data.billNo, userId], (updateErr, updateRes) => {
-                        if(updateErr) {
-                            return reject(updateErr);
-                        } else {
-                            return resolve(updateRes);
-                        }
-                    });
+            db.query('SELECT * FROM pledgebook_settings WHERE user_id = ?', [userId], (err, res) => {
+                if(err) {
+                    return reject(err);
                 } else {
-                    db.query('INSERT INTO pledgebook_settings (user_id, bill_series, last_created_bill_no, bill_start, bill_limit) VALUES (?, ?, ?, ?, ?)', [userId, data.billSeries, data.billNo, 1, 10000], (insertErr, insertRes) => {
-                        if(insertErr) {
-                            return reject(insertErr);
-                        } else {
-                            return  resolve(insertRes);
-                        }
-                    });
+                    if(res && res.length > 0) {
+                        db.query('UPDATE pledgebook_settings SET bill_series = ?, last_created_bill_no = ? WHERE user_id = ?', [data.billSeries, data.billNo, userId], (updateErr, updateRes) => {
+                            if(updateErr) {
+                                return reject(updateErr);
+                            } else {
+                                return resolve(updateRes);
+                            }
+                        });
+                    } else {
+                        db.query('INSERT INTO pledgebook_settings (user_id, bill_series, last_created_bill_no, bill_start, bill_limit) VALUES (?, ?, ?, ?, ?)', [userId, data.billSeries, data.billNo, 1, 10000], (insertErr, insertRes) => {
+                            if(insertErr) {
+                                return reject(insertErr);
+                            } else {
+                                return  resolve(insertRes);
+                            }
+                        });
+                    }
                 }
-            }
+            });
+            // PledgebooksettingsCls.findOrCreate({where: {userId: userId}}, {userId: userId, billStart: 1, billLimit: 10000}, (err, res) => {
+            //     if(err) {
+            //         console.log(err); // TODO: Mig Refactor
+            //         reject(err);
+            //     } else {
+            //         PledgebooksettingsCls.updateAll({userId: userId}, {billSeries: data.billSeries, lastCreatedBillNo: data.billNo}, (error, result) => {
+            //             if(error) {
+            //                 reject(error);
+            //             } else {
+            //                 resolve(result);
+            //             }
+            //         });
+            //     }
+            // });            
         });
-        // PledgebooksettingsCls.findOrCreate({where: {userId: userId}}, {userId: userId, billStart: 1, billLimit: 10000}, (err, res) => {
-        //     if(err) {
-        //         console.log(err); // TODO: Mig Refactor
-        //         reject(err);
-        //     } else {
-        //         PledgebooksettingsCls.updateAll({userId: userId}, {billSeries: data.billSeries, lastCreatedBillNo: data.billNo}, (error, result) => {
-        //             if(error) {
-        //                 reject(error);
-        //             } else {
-        //                 resolve(result);
-        //             }
-        //         });
-        //     }
-        // });            
-    });
-}
+    }
 
     async UpdateBillNumberAPIHanlder(params, cb) {
         let resp = {STATUS: 'SUCCESS'};

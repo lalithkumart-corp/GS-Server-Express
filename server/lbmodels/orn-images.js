@@ -6,7 +6,7 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
-class OrnImageCls {
+export class OrnImageCls {
     constructor() {
 
     }
@@ -14,13 +14,7 @@ class OrnImageCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-export const OrnImage = new OrnImageCls();
-
-
-// module.exports = function(OrnImage) {
-    OrnImageCls.prototype.saveImage = (picture) => {
+    saveImage(picture) {
         return new Promise( (resolve, reject) => {
             db.query('INSERT INTO orn_images (HashKey, Image, Format, Path, StorageMode, Optional) VALUES (?,?,?,?,?,?)', [
                 picture.hashKey,
@@ -44,7 +38,7 @@ export const OrnImage = new OrnImageCls();
         });        
     }
 
-    OrnImageCls.prototype.getImage = (imageId) => {
+    getImage(imageId) {
         return new Promise( (resolve, reject) => {
             db.query('SELECT * FROM orn_images WHERE Id = ?', [imageId], (err, result) => {
             // OrnImage.findById(imageId, (err, result) => {
@@ -56,7 +50,7 @@ export const OrnImage = new OrnImageCls();
         });        
     }
 
-    OrnImageCls.prototype.delImage = (imageRec) => {
+    delImage(imageRec) {
         return new Promise( (resolve, reject) => {
             if(imageRec.StorageMode == 'PATH') {
                 fs.unlink(imageRec.Path, (error) => {
@@ -79,6 +73,8 @@ export const OrnImage = new OrnImageCls();
             
         });
     }
-// };
+}
+
+export const OrnImage = new OrnImageCls();
 
 export default router;

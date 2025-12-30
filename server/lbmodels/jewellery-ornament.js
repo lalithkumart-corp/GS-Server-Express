@@ -8,12 +8,13 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 import db from '../db/index.js';
 import express from 'express';
+import { ProductCodeCls } from './product-code.js';
 const router = express.Router();
 export default router;
 
 export class JewelleryOrnamentCls {
     constructor() {
-        
+        this.productCode = new ProductCodeCls();
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
@@ -24,7 +25,7 @@ export class JewelleryOrnamentCls {
             if(!data.accessToken)
                 throw 'Access Token is missing';
             data._userId = await getStoreOwnerUserId(data.accessToken);
-            let productCodeRow = await this.app.models.ProductCode.getCodeId(data.productCode, data._userId);
+            let productCodeRow = await this.productCode.getCodeId(data.productCode, data._userId);
             data.productCodeTableId = productCodeRow.id;
             data._hashKey = this._generateHashKey(data);
             data._isAlreadyExists = await this._isAlreadyExists(data._hashKey, {userId: data._userId});
@@ -45,7 +46,7 @@ export class JewelleryOrnamentCls {
             if(!data.accessToken)
                 throw 'Access Token is missing';
             data._userId = await getStoreOwnerUserId(data.accessToken);
-            let productCodeRow = await this.app.models.ProductCode.getCodeId(data.productCode, data._userId);
+            let productCodeRow = await this.productCode.getCodeId(data.productCode, data._userId);
             data.productCodeTableId = productCodeRow.id;
             data._hashKey = this._generateHashKey(data);
             data._isAlreadyExists = await this._isAlreadyExists(data._hashKey, {userId: data._userId, ignoreOrnId: data.id});
@@ -113,7 +114,7 @@ export class JewelleryOrnamentCls {
         try {
             params = JSON.parse(JSON.stringify(params));
 
-            let productCodeRow = await JewelleryOrnament.app.models.ProductCode.getCodeId(params.productCodeSeries, params._userId);
+            let productCodeRow = await this.productCode.getCodeId(params.productCodeSeries, params._userId);
             if(options && options.updateAPI && params.productCodeNo && params.productCodeSeries) {
                 productCodeRow = {
                     id: productCodeRow.id,

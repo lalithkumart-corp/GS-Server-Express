@@ -4,7 +4,7 @@ import db from '../db/index.js';
 import PledgebookService from '../services/pledgebook.service.js';
 import { CustomerCls } from './customer.js';
 import { FundTransactionCls } from './fund-transaction.js';
-import { Pledgebooksettings } from './pledgebook-settings.js';
+import { Pledgebooksettings, PledgebooksettingsCls } from './pledgebook-settings.js';
 import express from 'express';
 
 let utils = require('../utils/commonUtils');
@@ -31,6 +31,7 @@ export class PledgebookCls {
         this.customer = new CustomerCls();
         this.fundTransaction = new FundTransactionCls();
         this.service = new PledgebookService();
+        this.pledgebookSettings = new PledgebooksettingsCls();
     }
 
     remoteMethod(apiMeth, config) {
@@ -75,7 +76,7 @@ export class PledgebookCls {
             params.accessToken = data.accessToken;
             if(!params.accessToken)
                 throw 'Access Token is missing';
-            let parsedArg = parseInputData(params);
+            let parsedArg = this.parseInputData(params);
             parsedArg._userId = await utils.getStoreOwnerUserId(params.accessToken);
             console.log('ParsedArg:', parsedArg);
             let isActiveUser = await utils.getAppStatus(parsedArg._userId);
@@ -124,8 +125,8 @@ export class PledgebookCls {
                 //         parsedArg.billRemarks += ` Other Mobile: ${parsedArg.mobile}`;
                 // }
 
-                await saveBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook
-                await Pledgebooksettings.updateLastBillDetail(parsedArg);
+                await this.saveBillDetails(parsedArg, pledgebookTableName); //Save ImageId, CustomerID, ORNAMENT and other Bill details in Pledgebook
+                await this.pledgebookSettings.updateLastBillDetail(parsedArg);
                 this.fundTransaction.add({parsedArg, pledgebookTableName}, 'pledgebook');
                 return {STATUS: 'SUCCESS', STATUS_MSG: 'Successfully inserted new bill'};
             } else {
@@ -167,7 +168,7 @@ export class PledgebookCls {
                 params.modifiedDate,
             ];
             //
-            let query = getQuery('insert', dbInputValues, pledgebookTableName);
+            let query = this.getQuery('insert', dbInputValues, pledgebookTableName);
             db.query(query, dbInputValues, (err, result) => {
                 if(err) {
                     reject ( err );
@@ -881,7 +882,7 @@ export class PledgebookCls {
             let res;
             if(fetchFundTrns) {
                 let uuidArray = billNoWithUUIDArray.map((anObj) => anObj.uuid);
-                FundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
+                this.fundTransaction._fetchTransactionsByBillIdApi(accessToken, uuidArray);
             }
             let billNoArray = billNoWithUUIDArray.map((anObj) => anObj.billNo);
             let pledgebookTableName = await this.service.getPledgebookTableName(_userId);
@@ -1529,10 +1530,11 @@ export class PledgebookCls {
             await this.saveBillDetails(params, pledgebookTableName);
 
             //Update PledgebookSettings table for LastBillNo
-            await Pledgebooksettings.updateLastBillDetail(params);
+            params._userId = _userId;
+            await this.pledgebookSettings.updateLastBillDetail(params);
 
             //Insert In FundTransaction table
-            params._userId = _userId;
+            // params._userId = _userId;
             params.paymentDetails = payload.newBillParams.paymentDetails;
             this.fundTransaction.add({parsedArg: params, pledgebookTableName}, 'pledgebook');
 

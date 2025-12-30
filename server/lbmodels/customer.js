@@ -617,6 +617,126 @@ export class CustomerCls {
         }
     }
 
+    _updatePrimaryMobile(mobNumber, custId, userId) {
+        return new Promise( (resolve, reject) => {
+            let sql = this.getQuery('update-primary-mobile');
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [mobNumber, custId], (err, res) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+    };
+
+    _updateSecMobile(mobNumber, custId, userId) {
+        return new Promise( (resolve, reject) => {
+            let sql = this.getQuery('update-sec-mobile');
+            sql = sql.replace(/REPLACE_USERID/g, userId);
+            db.query(sql, [mobNumber, custId], (err, res) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+    };
+
+    getCustomerBasicListApi(accessToken, params, cb) {
+        this._getCustomerBasicListApi(accessToken, params).then((resp) => {
+            if(resp)
+                cb(null, {STATUS: 'SUCCESS', RESP: {list: resp}});
+            else
+                cb(null, {STATUS: 'ERROR', RESP: {list: resp}});
+        }).catch((e)=>{
+            cb({STATUS: 'EXCEPTION', ERR: e}, null);
+        });
+    }
+
+    _getCustomerBasicListApi(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            params.userId = await utils.getStoreOwnerUserId(accessToken);
+            let query = this.getQuery('customer-list-detailed', params);
+            query = query.replace(/REPLACE_USERID/g, params.userId);
+            db.query(query, (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    _.each(res, (aRec, index) => {
+                        aRec.userImagePath = utils.constructImageUrl(aRec.userImagePath);
+                    })
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    fetchByCustIdApiHanlder(accessToken, custIdArr, cb) {
+        this._fetchByCustIdApiHanlder(accessToken, {custIdArr}).then((resp) => {
+            if(resp)
+                cb(null, {STATUS: 'SUCCESS', RESP: resp});
+            else
+                cb(null, {STATUS: 'ERROR', RESP: resp});
+        }).catch((e)=>{
+            cb({STATUS: 'EXCEPTION', ERR: e}, null);
+        });
+    }
+
+    _fetchByCustIdApiHanlder(accessToken, params) {
+        return new Promise(async (resolve, reject) => {
+            params.userId = await utils.getStoreOwnerUserId(accessToken);
+            let query = this.getQuery('customer-obj', params);
+            query = query.replace(/REPLACE_USERID/g, params.userId);
+            db.query(query, [params.custIdArr.join(',')], (err, res) => {
+                if(err) {
+                    return reject(err);
+                } else {
+                    return resolve(res);
+                }
+            });
+        });
+    }
+
+    async updateBlackListAPI(data) {
+        try {
+            let _userId = await utils.getStoreOwnerUserId(data.accessToken);
+            let isBlacklistCustomer = data.isBlacklistCustomer?true:false;
+            await this._updateBlackListAPI(data.custId, _userId, isBlacklistCustomer);
+            return {
+                STATUS: 'success',
+                MSG: `Successfully ${isBlacklistCustomer?'added customer to blacklist':'removed customer from blacklist'}`
+            }
+        } catch(e) {
+            console.log(e);
+            return {
+                STATUS: 'error',
+                MSG: e.message || 'Error while updating the blacklist',
+                ERROR: e
+            }
+        }
+    }
+
+    async _updateBlackListAPI(custId, userId, isBlacklisted) {
+        return new Promise( (resolve, reject) => {
+            let params = {
+                custId: custId,
+                userId: userId,
+                isBlacklisted: isBlacklisted
+            }
+            let query = this.getQuery('blacklist-update', params);
+            query = query.replace(/REPLACE_USERID/g, userId);
+            db.query(query, (err1, res1) => {
+                if(err1) {
+                    reject(err1);
+                } else {
+                    resolve(true);
+                }
+            });
+        });        
+    }
 
 }
 
@@ -983,127 +1103,6 @@ Customer.remoteMethod('updateBlackListAPI', {
         description: 'Updating the customer Status'
     });
 
-    Customer._updatePrimaryMobile = (mobNumber, custId, userId) => {
-        return new Promise( (resolve, reject) => {
-            let sql = Customer.getQuery('update-primary-mobile');
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [mobNumber, custId], (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
-    };
-
-    Customer._updateSecMobile = (mobNumber, custId, userId) => {
-        return new Promise( (resolve, reject) => {
-            let sql = Customer.getQuery('update-sec-mobile');
-            sql = sql.replace(/REPLACE_USERID/g, userId);
-            db.query(sql, [mobNumber, custId], (err, res) => {
-                if(err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
-    };
-
-    Customer.getCustomerBasicListApi = (accessToken, params, cb) => {
-        Customer._getCustomerBasicListApi(accessToken, params).then((resp) => {
-            if(resp)
-                cb(null, {STATUS: 'SUCCESS', RESP: {list: resp}});
-            else
-                cb(null, {STATUS: 'ERROR', RESP: {list: resp}});
-        }).catch((e)=>{
-            cb({STATUS: 'EXCEPTION', ERR: e}, null);
-        });
-    }
-
-    Customer._getCustomerBasicListApi = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            params.userId = await utils.getStoreOwnerUserId(accessToken);
-            let query = Customer.getQuery('customer-list-detailed', params);
-            query = query.replace(/REPLACE_USERID/g, params.userId);
-            db.query(query, (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    _.each(res, (aRec, index) => {
-                        aRec.userImagePath = utils.constructImageUrl(aRec.userImagePath);
-                    })
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    Customer.fetchByCustIdApiHanlder = (accessToken, custIdArr, cb) => {
-        Customer._fetchByCustIdApiHanlder(accessToken, {custIdArr}).then((resp) => {
-            if(resp)
-                cb(null, {STATUS: 'SUCCESS', RESP: resp});
-            else
-                cb(null, {STATUS: 'ERROR', RESP: resp});
-        }).catch((e)=>{
-            cb({STATUS: 'EXCEPTION', ERR: e}, null);
-        });
-    }
-
-    Customer._fetchByCustIdApiHanlder = (accessToken, params) => {
-        return new Promise(async (resolve, reject) => {
-            params.userId = await utils.getStoreOwnerUserId(accessToken);
-            let query = Customer.getQuery('customer-obj', params);
-            query = query.replace(/REPLACE_USERID/g, params.userId);
-            db.query(query, [params.custIdArr.join(',')], (err, res) => {
-                if(err) {
-                    return reject(err);
-                } else {
-                    return resolve(res);
-                }
-            });
-        });
-    }
-
-    Customer.updateBlackListAPI = async (data) => {
-        try {
-            let _userId = await utils.getStoreOwnerUserId(data.accessToken);
-            let isBlacklistCustomer = data.isBlacklistCustomer?true:false;
-            await Customer._updateBlackListAPI(data.custId, _userId, isBlacklistCustomer);
-            return {
-                STATUS: 'success',
-                MSG: `Successfully ${isBlacklistCustomer?'added customer to blacklist':'removed customer from blacklist'}`
-            }
-        } catch(e) {
-            console.log(e);
-            return {
-                STATUS: 'error',
-                MSG: e.message || 'Error while updating the blacklist',
-                ERROR: e
-            }
-        }
-    }
-
-    Customer._updateBlackListAPI = async (custId, userId, isBlacklisted) => {
-        return new Promise( (resolve, reject) => {
-            let params = {
-                custId: custId,
-                userId: userId,
-                isBlacklisted: isBlacklisted
-            }
-            let query = Customer.getQuery('blacklist-update', params);
-            query = query.replace(/REPLACE_USERID/g, userId);
-            db.query(query, (err1, res1) => {
-                if(err1) {
-                    reject(err1);
-                } else {
-                    resolve(true);
-                }
-            });
-        });        
-    }
-// };
 
 let SQL = {
     Name: `SELECT DISTINCT Name from customer_REPLACE_USERID`,

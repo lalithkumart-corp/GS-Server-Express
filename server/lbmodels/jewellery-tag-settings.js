@@ -6,7 +6,7 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
-class JewelleryTagSettingsCls {
+export class JewelleryTagSettingsCls {
     constructor() {
         
     }
@@ -14,82 +14,19 @@ class JewelleryTagSettingsCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
-}
-
-const JewelleryTagSettings = new JewelleryTagSettingsCls();
-
-
-// module.exports = function(JewelleryTagSettings) {
-
-    JewelleryTagSettingsCls.prototype.getSettingsApiHandler = async (accessToken) => {
+    async getSettingsApiHandler(accessToken) {
         try {            
             if(!accessToken)
                 throw 'Access Token is missing';
             let _userId = await utils.getStoreOwnerUserId(accessToken);
-            let tagSettings = await JewelleryTagSettingsCls.prototype._getSettings(_userId);
+            let tagSettings = await this._getSettings(_userId);
             return {STATUS: 'SUCCESS', TAG_SETTINGS: tagSettings};
         } catch(e) {
             return { STATUS: 'ERROR', MESSAGE: e}
         }
     }
 
-    JewelleryTagSettingsCls.prototype.remoteMethod('getSettingsApiHandler', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken;
-                    if(req && req.headers.authorization)
-                        accessToken = req.headers.authorization;
-                    return accessToken;
-                },
-                description: 'Arguments goes here',
-            }],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body',
-            },
-        },
-        http: {path: '/get-settings', verb: 'get'},
-        description: 'For fetching tag settings.',
-    });
-
-    JewelleryTagSettingsCls.prototype.remoteMethod('updateTagPreferenceApi', {
-        accepts: [
-            {
-                arg: 'accessToken', type: 'string', http: (ctx) => {
-                    let req = ctx && ctx.req;
-                    let accessToken;
-                    if(req && req.headers.authorization)
-                        accessToken = req.headers.authorization;
-                    return accessToken;
-                },
-                description: 'Authorization from header',
-            }, {
-                arg: 'payload',
-                type: 'object',
-                default: {
-                    
-                },
-                http: {
-                    source: 'body',
-                },
-            }
-        ],
-        returns: {
-            type: 'object',
-            root: true,
-            http: {
-                source: 'body'
-            }
-        },
-        http: {path: '/update-tag-selection', verb: 'put'},
-        description: 'Updates tag selection'
-    });
-
-    JewelleryTagSettingsCls.prototype._getSettings = (_userId) => {
+     _getSettings(_userId) {
         return new Promise(async (resolve, reject) => {
             db.query(SQL.GET_SETTINGS, [_userId], (err, res) => {
             // JewelleryTagSettingsCls.dataSource.connector.query(SQL.GET_SETTINGS, [_userId], (err, res) => {
@@ -102,18 +39,18 @@ const JewelleryTagSettings = new JewelleryTagSettingsCls();
         });
     }
 
-    JewelleryTagSettingsCls.prototype.updateTagPreferenceApi = async (accessToken, payload) => {
+    async updateTagPreferenceApi(accessToken, payload) {
         try {            
             if(!accessToken)
                 throw 'Access Token is missing';
-            await JewelleryTagSettingsCls.prototype._updateTagPreference(accessToken, payload);
+            await this._updateTagPreference(accessToken, payload);
             return {STATUS: 'SUCCESS', MESSAGE: 'UPDATED SUCCESSFULLY'};
         } catch(e) {
             return { STATUS: 'ERROR', MESSAGE: e}
         }
     }
 
-    JewelleryTagSettingsCls.prototype._updateTagPreference = (accessToken, payload) => {
+    _updateTagPreference(accessToken, payload) {
         return new Promise(async (resolve, reject) => {
             try {
                 let _userId = await utils.getStoreOwnerUserId(accessToken);
@@ -130,7 +67,65 @@ const JewelleryTagSettings = new JewelleryTagSettingsCls();
             }
         });
     }
-// };
+}
+
+const JewelleryTagSettings = new JewelleryTagSettingsCls();    
+
+JewelleryTagSettings.remoteMethod('getSettingsApiHandler', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken;
+                if(req && req.headers.authorization)
+                    accessToken = req.headers.authorization;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        }],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body',
+        },
+    },
+    http: {path: '/get-settings', verb: 'get'},
+    description: 'For fetching tag settings.',
+});
+
+JewelleryTagSettings.remoteMethod('updateTagPreferenceApi', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken;
+                if(req && req.headers.authorization)
+                    accessToken = req.headers.authorization;
+                return accessToken;
+            },
+            description: 'Authorization from header',
+        }, {
+            arg: 'payload',
+            type: 'object',
+            default: {
+                
+            },
+            http: {
+                source: 'body',
+            },
+        }
+    ],
+    returns: {
+        type: 'object',
+        root: true,
+        http: {
+            source: 'body'
+        }
+    },
+    http: {path: '/update-tag-selection', verb: 'put'},
+    description: 'Updates tag selection'
+});
 
 let SQL = {
     GET_SETTINGS: `SELECT 

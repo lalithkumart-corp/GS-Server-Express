@@ -8,6 +8,7 @@ import { ApplicationManagerCls, ApplicationManager } from './app-manager.js';
 import { LoanBillTemplate } from './loan-bill-template.js';
 import { JewelleryBillSettings } from './jewellery-bill-settings.js';
 import { JewelleryTagSettings } from './jewellery-tag-settings.js';
+import { StoreCls } from './store.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 let addUserParamValidation = require('../utils/validateUtil').addUserParamValidation;
@@ -25,6 +26,7 @@ export class GsuserCls {
     constructor() {
         this.userService = new userService();
         this.appManager = new ApplicationManagerCls();
+        this.store = new StoreCls();
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
@@ -202,7 +204,7 @@ export class GsuserCls {
 
         try{
             let user = await this._insertUser(custom);
-            await this._insertRoleMapping(user, 2);
+            // await this._insertRoleMapping(user, 2);
             await this._insertNewApplication(user);
             await this._insertNewStore(custom, user);
             let resp = await this._loginUser(custom);
@@ -331,7 +333,7 @@ export class GsuserCls {
 
     async _insertNewStore(apiParams, user) {
         try {
-            await GsuserCls.app.models.Store._insertNewStore({storeName: apiParams.storeName, email: apiParams.email, phone: apiParams.phone, userId: user.id});
+            await this.store._insertNewStore({storeName: apiParams.storeName, email: apiParams.email, phone: apiParams.phone, userId: user.id});
             return true;
         } catch(e) {
             console.log(e);
@@ -453,12 +455,13 @@ export class GsuserCls {
     _passwordReset(apiParams) {
         return new Promise(async (resolve, reject) => {
             let userId = await utils.getStoreOwnerUserId(apiParams.accessToken);
-            let userRec = await GsuserCls.prototype._find(userId);
+            let userRec = await this._find(userId);
             if(userRec && userRec.pwd == apiParams.currentPassword) {
                 userRec.updateAttribute('password', apiParams.newPassword, (err, res) => {
                     if(err) return reject(err);
                     else {
-                        GsuserCls.updateAll({email: userRec.email}, {pwd: apiParams.newPassword}, (err, res) => {
+                        db.query('UPDATE user SET pwd = ? WHERE email = ?', [apiParams.newPassword, userRec.email], (err, res) => {
+                        // this.updateAll({email: userRec.email}, {pwd: apiParams.newPassword}, (err, res) => {
                             if(err) {
                                 console.log(err);
                                 return reject(err);

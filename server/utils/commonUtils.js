@@ -139,7 +139,7 @@ export const constructImageUrl = (path) => {
         let url = '';
         try {
             url = `${appConfig.get('externalProtocol')}://${appConfig.get('externalDomain')}`;
-            if(process.env.NODE_ENV == 'development')
+            if(process.env.NODE_ENV == 'development' || process.env.NODE_ENV == 'local')
                 url += `:${appConfig.get('externalPort')}${path.substring(path.indexOf('/uploads'), path.length)}`;
             else if(process.env.NODE_ENV == 'offlineprod')
                 url += `:${appConfig.get('externalPort')}${path.substring(path.indexOf('/uploads'), path.length)}`;

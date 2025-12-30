@@ -7,7 +7,7 @@ const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
 
-class CustAttachmentImageCls {
+export class CustAttachmentImageCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
     }

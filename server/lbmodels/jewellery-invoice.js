@@ -9,6 +9,7 @@ let JewelleryInvoiceHelper = require('./modelHelpers/jewelleryInvoice');
 import { Stock } from './stock.js';
 import db from '../db/index.js';
 import express from 'express';
+import { FundTransactionCls } from './fund-transaction.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
@@ -16,7 +17,7 @@ export default router;
 
 export class JwlInvoiceCls {
     constructor() {
-        
+        this.fundTransaction = new FundTransactionCls();
     }
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
@@ -323,7 +324,7 @@ export class JwlInvoiceCls {
                 await Stock._archiveSoldItemByInvoiceRef(userId, invoiceRef);
                 await Stock._archiveOldOrnamentRecByInvoiceRef(userId, invoiceRef, 'original');
                 await this._archiveByInvoiceRef(userId, invoiceRef);
-                await this.app.models.FundTransaction.prototype.removeEntry({
+                await this.fundTransaction.removeEntry({
                     userId,
                     gsUid: invoiceRef
                 }, 'jwl_sale');
@@ -391,20 +392,20 @@ export class JwlInvoiceCls {
                 await this._updateReturnFlagByInvoiceRef(userId, invoiceRef, params.charges, params.paymentSelectionCardData[r.cashInMode].value);
 
                 if(params.paymentSelectionCardData.mode == 'mixed') {
-                    await this.app.models.FundTransaction.prototype.add({
+                    await this.fundTransaction.add({
                         ...r,
                         cashOut: params.paymentSelectionCardData.mixed.cash.value,
                         cashOutMode: 'cash',
                         accountId: params.paymentSelectionCardData.mixed.cash.fromAccountId,
                     }, 'jwl_sale_return');
-                    await this.app.models.FundTransaction.prototype.add({
+                    await this.fundTransaction.add({
                         ...r,
                         cashOut: params.paymentSelectionCardData.mixed.online.value,
                         cashOutMode: 'online',
                         accountId: params.paymentSelectionCardData.mixed.online.fromAccountId,
                     }, 'jwl_sale_return');
                 } else {
-                    await this.app.models.FundTransaction.prototype.add({
+                    await this.fundTransaction.add({
                         ...r,
                         cashOut: params.paymentSelectionCardData[r.cashInMode].value,
                         accountId: params.paymentSelectionCardData[r.cashInMode].fromAccountId,
