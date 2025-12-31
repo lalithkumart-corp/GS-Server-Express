@@ -67,7 +67,7 @@ export class JewelleryBillSettingsCls {
                 userId: params._userId,
             };
 
-            let sql = `SELECT * FROM jewellery_bill_settings WHERE user_id = ?`;
+            let sql = `SELECT id, user_id as userId, category, bill_no as billNo, bill_series as billSeries, selected_template as selectedTemplate, custom_css as customCss, custom_args as customArgs FROM jewellery_bill_settings WHERE user_id = ?`;
             let queryParams = [params._userId];
 
             if(params.category) {

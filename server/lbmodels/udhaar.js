@@ -255,7 +255,6 @@ export class UdhaarCls {
                     udhaarTrashedFlag: res[0].udhaarTrashedFlag,
                     udhaarInterestPct: res[0].udhaarInterestPct,
                     udhaarInterestVal: res[0].udhaarInterestVal,
-                    udhaarInterestPct: res[0].udhaarInterestPct,
                     customerInfo: {
                         customerId: res[0].customerId,
                         customerName: res[0].customerName,

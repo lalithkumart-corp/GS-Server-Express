@@ -10,6 +10,8 @@ const paramParser = (argConfig, req, res) => {
         value = req.query[argConfig.arg];
     } else if (argConfig.http && argConfig.http.source === 'header') {
         value = req.headers[argConfig.arg.toLowerCase()];
+    } else if (argConfig.http && argConfig.http.source === 'res') {
+        value = res;
     } else {
         value = req.query[argConfig.arg] || req.body[argConfig.arg] || req.headers[argConfig.arg.toLowerCase()];
     }
