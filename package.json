@@ -4,7 +4,8 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "start_2": "rimraf dist && node build-tool2.js && npm run copy-config_2 && node dist/server.bundle.js",
+    "start_2": "npm run build_2 && node dist/server.bundle.js",
+    "build_2": "rimraf dist && node build-tool2.js && npm run copy-config_2",
     "copy-config_2": "cpx \"server/config/*.json\" dist/",
     "start": "npm-run-all build server",
     "build": "npm-run-all clean transpile copy-config",
