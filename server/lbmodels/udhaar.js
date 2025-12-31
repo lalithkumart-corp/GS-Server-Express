@@ -1,7 +1,7 @@
 'use strict';
 let _ = require('lodash');
 let utils = require('../utils/commonUtils');
-let dateformat = require('dateformat');
+import dateFormat from 'dateformat';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const UDHAAR_LIST = 'UDHAAR_LIST';
@@ -43,7 +43,7 @@ export class UdhaarCls {
             if(apiParams.billSeries)
                 billNo = apiParams.billSeries + '.' + apiParams.billNo;
             apiParams._billNo = billNo;
-            let queryValues = [apiParams._uniqId, billNo, apiParams.amount, dateformat(apiParams.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.accountId, apiParams.customerId, apiParams.notes,
+            let queryValues = [apiParams._uniqId, billNo, apiParams.amount, dateFormat(apiParams.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.accountId, apiParams.customerId, apiParams.notes,
                                 apiParams.interestPct, apiParams.interestVal, apiParams.landedCost];
             db.query(sql, queryValues, async (err, res) => {
                 if(err){
@@ -75,7 +75,7 @@ export class UdhaarCls {
             if(apiParams.billSeries)
                 billNo = apiParams.billSeries + '.' + apiParams.billNo;
             apiParams.modifiedDate = new Date().toISOString().replace('T', ' ').slice(0,23);
-            let queryValues = [billNo, apiParams.amount, dateformat(apiParams.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.accountId, apiParams.customerId, apiParams.notes,
+            let queryValues = [billNo, apiParams.amount, dateFormat(apiParams.udhaarCreationDate, 'yyyy-mm-dd HH:MM:ss', true), apiParams.accountId, apiParams.customerId, apiParams.notes,
                                 apiParams.interestPct, apiParams.interestVal, apiParams.landedCost, apiParams.modifiedDate, apiParams.udhaarUid];
             db.query(sql, queryValues, async (err, res) => {
                 if(err){

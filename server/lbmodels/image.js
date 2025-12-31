@@ -63,6 +63,7 @@ class ImageCls {
             }
 
         } catch(e) {
+            console.log(e);
             imageStatus.STATUS = 'ERROR';
             imageStatus.MSG = e.message;
         } finally {
@@ -250,7 +251,7 @@ class ImageCls {
                 picture.format,
                 picture.path,
                 picture.storageMode,
-                picture.options
+                JSON.stringify(picture.options)
             ], (err, result) => {
                 if(err) {
                     //TODO: log the error
@@ -259,8 +260,8 @@ class ImageCls {
                     return reject(error);
                 } else {
                     // let url = `http://${app.get('domain')}:${app.get('port')}${result.path.replace('client', '')}`;
-                    let url = utils.constructImageUrl(result.path);
-                    return resolve({id: result.id, url: url});
+                    let url = utils.constructImageUrl(picture.path);
+                    return resolve({id: result.insertId, url: url});
                 }
             });
         });

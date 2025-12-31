@@ -1,7 +1,7 @@
 'use strict';
 import express from 'express';
 import db from '../db/index.js';
-import utils from '../utils/commonUtils';
+let utils = require('../utils/commonUtils');
 const { remoteMethod } = require('../routes/remoteMethod.js');
 
 const router = express.Router();
@@ -23,7 +23,7 @@ class InterestCls {
         try {
             if (!accessToken) throw new Error('Access Token is missing');
             const _userId = await utils.getStoreOwnerUserId(accessToken);
-            const interestRatesDetails = await db.query('SELECT * FROM interest_rates WHERE user_id = ?', [_userId]);
+            const interestRatesDetails = await db.query('SELECT id, range_from as rangeFrom, range_to as rangeTo, rate_of_interest as rateOfInterest, type, user_id FROM interest_rates WHERE user_id = ?', [_userId]);
             return { STATUS: 'SUCCESS', interestRatesDetails };
         } catch (e) {
             return { STATUS: 'ERROR', MESSAGE: e?.message || e };

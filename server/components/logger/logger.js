@@ -6,31 +6,36 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'GS-Server' },
   transports: [
-    new winston.transports.File({ filename: 'info.log', level: 'info',
-        maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
+    new winston.transports.File({
+      filename: 'logs/info.log', level: 'info',
+      maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
       maxFiles: 5,      // Keep up to 5 rotated log files
-      tailable: true,   
-     }),
-    new winston.transports.File({ filename: 'debug.log', level: 'debug',
-        maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
+      tailable: true,
+    }),
+    new winston.transports.File({
+      filename: 'logs/debug.log', level: 'debug',
+      maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
       maxFiles: 5,      // Keep up to 5 rotated log files
-      tailable: true,   
-     }),
-    new winston.transports.File({ filename: 'warn.log', level: 'warn',
-        maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
+      tailable: true,
+    }),
+    new winston.transports.File({
+      filename: 'logs/warn.log', level: 'warn',
+      maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
       maxFiles: 5,      // Keep up to 5 rotated log files
-      tailable: true,   
-     }),
-    new winston.transports.File({ filename: 'error.log', level: 'error',
-        maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
+      tailable: true,
+    }),
+    new winston.transports.File({
+      filename: 'logs/error.log', level: 'error',
+      maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
       maxFiles: 5,      // Keep up to 5 rotated log files
-      tailable: true,   
-     }),
-    new winston.transports.File({ filename: 'combined.log',
-        maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
+      tailable: true,
+    }),
+    new winston.transports.File({
+      filename: 'logs/combined.log',
+      maxsize: 5242880, // 5MB (5 * 1024 * 1024 bytes)
       maxFiles: 5,      // Keep up to 5 rotated log files
-      tailable: true,   
-     }),
+      tailable: true,
+    }),
   ],
 });
 
@@ -39,9 +44,10 @@ const logger = winston.createLogger({
 // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
 //
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.prettyPrint(),
-  }));
+  // logger.add(new winston.transports.Console({
+  //   format: winston.format.prettyPrint(),
+  // }));
+  logger.add(new winston.transports.Console());
 }
 
 export default logger;

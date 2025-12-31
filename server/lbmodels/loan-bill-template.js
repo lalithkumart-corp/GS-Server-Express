@@ -55,7 +55,7 @@ export class LoanBillTemplateCls {
     }
 
     updateSettingsApi(apiParams, cb) {
-        this._updateSettingsApi.call(apiParams).then(
+        this._updateSettingsApi(apiParams).then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});
@@ -88,7 +88,7 @@ export class LoanBillTemplateCls {
     };
 
     getAvlLoanBillTemplatesApi(cb) {
-        this._getAvlLoanBillTemplatesApi.call().then(
+        this._getAvlLoanBillTemplatesApi().then(
             (resp) => {
                 if(resp)
                     cb(null, {STATUS: 'SUCCESS', RESP: resp});

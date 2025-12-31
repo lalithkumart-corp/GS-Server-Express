@@ -21,7 +21,7 @@ export class UdhaarSettingsCls {
         utils.getStoreOwnerUserId(accessToken)
         .then(
             (userId) => {
-                db.query(`SELECT bill_series, next_bill_no FROM udhaar_settings WHERE userId = ?`, [userId], (err, res) => {
+                db.query(`SELECT bill_series, next_bill_no FROM udhaar_settings WHERE user_id = ?`, [userId], (err, res) => {
                     if(err) {
                         cb(err, null);
                     } else {
@@ -48,13 +48,13 @@ export class UdhaarSettingsCls {
     updateNextBillNumber(userId, nextBillNo) {
         return new Promise(async (resolve, reject) => {
 
-            let res1 = await db.query(`SELECT * FROM udhaar_settings WHERE userId = ?`, [userId]);
+            let res1 = await db.query(`SELECT * FROM udhaar_settings WHERE user_id = ?`, [userId]);
             if(res1.length === 0) {
-                await db.query(`INSERT INTO udhaar_settings (userId, next_bill_no) VALUES (?, ?)`, [userId, nextBillNo]);
+                await db.query(`INSERT INTO udhaar_settings (user_id, next_bill_no) VALUES (?, ?)`, [userId, nextBillNo]);
                 return resolve({affectedRows: 1});
             }
 
-            await db.query(`UPDATE udhaar_settings SET next_bill_no = ? WHERE userId = ?`, [nextBillNo, userId]);
+            await db.query(`UPDATE udhaar_settings SET next_bill_no = ? WHERE user_id = ?`, [nextBillNo, userId]);
             resolve({affectedRows: 1});
         });
     }

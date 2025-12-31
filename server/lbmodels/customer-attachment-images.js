@@ -20,7 +20,7 @@ export class CustAttachmentImageCls {
                 picture.format,
                 picture.path,
                 picture.storageMode,
-                picture.options,
+                JSON.stringify(picture.options),
                 picture.caption
             ], (err, result) => {
                 if(err) {
@@ -30,8 +30,8 @@ export class CustAttachmentImageCls {
                     return reject(error);
                 } else {
                     // let url = `http://${app.get('domain')}:${app.get('port')}${result.path.replace('client', '')}`;
-                    let url = utils.constructImageUrl(result.path);
-                    return resolve({id: result.id, url: url});
+                    let url = utils.constructImageUrl(picture.path);
+                    return resolve({id: result.insertId, url: url});
                 }
             });
         });        

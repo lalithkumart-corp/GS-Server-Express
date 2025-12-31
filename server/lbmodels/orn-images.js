@@ -3,6 +3,7 @@ var fs = require('fs');
 let utils = require('../utils/commonUtils');
 import express from 'express';
 const { remoteMethod } = require('../routes/remoteMethod.js');
+import db from '../db/index.js';
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ export class OrnImageCls {
                 picture.format,
                 picture.path,
                 picture.storageMode,
-                picture.options
+                JSON.stringify(picture.options)
             ], (err, result) => {
                 if(err) {
                     //TODO: log the error
@@ -31,8 +32,8 @@ export class OrnImageCls {
                     return reject(error);
                 } else {
                     // let url = `http://${app.get('domain')}:${app.get('port')}${result.path.replace('client', '')}`;
-                    let url = utils.constructImageUrl(result.path);
-                    return resolve({id: result.id, url: url});
+                    let url = utils.constructImageUrl(picture.path);
+                    return resolve({id: result.insertId, url: url});
                 }
             });
         });        

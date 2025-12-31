@@ -27,9 +27,9 @@ class AlertCls {
             if(params.link) {
                 if(params.link.to == 'pledgebook') {
                     let pledgebookTableName = await this.pledgebook.getPledgebookTableName(params._userId);
-                    await this._linkToPledgebookBill(pledgebookTableName, params.link.uniqueIdentifier, alertRes.id);
+                    await this._linkToPledgebookBill(pledgebookTableName, params.link.uniqueIdentifier, alertRes.insertId);
                 } else if(params.link.to == 'fund_transaction') {
-                    await this._linkToFundTransaction({userId: params._userId, transactionId: params.link.id, alertId: alertRes.id});
+                    await this._linkToFundTransaction({userId: params._userId, transactionId: params.link.id, alertId: alertRes.insertId});
                 }
             }
             return {STATUS: 'SUCCESS'};

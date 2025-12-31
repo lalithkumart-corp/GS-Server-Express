@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 /dist-server/
+server/logs/
+client/uploads/*
