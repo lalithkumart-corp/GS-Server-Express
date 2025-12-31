@@ -9,6 +9,7 @@ import usersRouter from './routes/user.routes.js';
 import authRouter from './routes/auth.routes.js';
 import loggerMiddleware from './middlewares/logger.middleware.js';
 import { decrypt, encrypt } from './utils/commonUtils.js';
+import { consoleLogHandler } from './components/logger/consoleLogHandler.js';
 
 var app = express();
 
@@ -49,5 +50,8 @@ console.log(encted);
 let decrypted = decrypt(encted, password);
 console.log(decrypted);
 */
+
+
+consoleLogHandler();
 
 export default app;
