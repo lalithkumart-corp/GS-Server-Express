@@ -1,0 +1,1 @@
+This folder is for storing images - "User Profil pic" and "Orn pic"
