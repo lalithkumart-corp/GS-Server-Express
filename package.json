@@ -60,5 +60,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "bin": "dist/server.bundle.js",
+  "pkg": {
+    "assets": ["dist/config.*.json"],
+    "targets": ["node18-win-x64"]
+  }
 }
