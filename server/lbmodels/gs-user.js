@@ -141,17 +141,19 @@ export class GsuserCls {
 
     _logoutUser(accessToken) {
         return new Promise((resolve, reject) => {
-            this.logout(accessToken, (err, res) => {
-                if(err) {
-                    console.log(err);
-                    this.storeLogoutActionDB({status: false, accessToken});
-                    return resolve(null);
-                } else {
-                    console.log(res);
-                    this.storeLogoutActionDB({status: true, accessToken});
-                    return resolve(true);
-                }
-            });
+            // TODO: Logout handler
+            // this.logout(accessToken, (err, res) => {
+            //     if(err) {
+            //         console.log(err);
+            //         this.storeLogoutActionDB({status: false, accessToken});
+            //         return resolve(null);
+            //     } else {
+            //         console.log(res);
+            //         this.storeLogoutActionDB({status: true, accessToken});
+            //         return resolve(true);
+            //     }
+            // });
+            this.storeLogoutActionDB({status: true, accessToken});
         });
     }
 

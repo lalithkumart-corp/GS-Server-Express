@@ -128,10 +128,12 @@ export class JewelleryBillSettingsCls {
                 updateParams.selected_template = payload.selectedTemplate;
             if(payload.customArgs)
                 updateParams.custom_args = JSON.stringify(payload.customArgs);
-
-            updateParams.bill_series = payload.billSeries;
             
-            updateParams.bill_no = payload.billNo;
+            if(payload.billSeries)
+                updateParams.bill_series = payload.billSeries;
+            
+            if(payload.billNo)
+                updateParams.bill_no = payload.billNo;
 
             await db.query(`UPDATE jewellery_bill_settings SET ? WHERE user_id = ? AND category = ?`, [updateParams, payload._userId, category]);
         }else

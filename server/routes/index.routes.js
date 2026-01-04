@@ -28,6 +28,7 @@ import udhaarRouterLb from '../lbmodels/udhaar.js';
 import udhaarSettingsRouterLb from '../lbmodels/udhaar-settings.js';
 import analyticsRouterLb from '../lbmodels/analytics.js';
 import fundAccountsRouterLb from '../lbmodels/fund-accounts.js';
+import testRouter from './test.routes.js';
 
 var router = express.Router();
 
@@ -68,4 +69,6 @@ router.use('/api/Udhaars', udhaarRouterLb);
 router.use('/api/UdhaarSettings', udhaarSettingsRouterLb);
 router.use('/api/Analytics', analyticsRouterLb);
 
+
+router.use('/test-route', testRouter);
 export default router;
