@@ -43,10 +43,10 @@ export class JewelleryBillSettingsCls {
                 let rows = [];
                 _.each(records, (aRow, index) => {
                     rows.push({
-                        selectedTemplate: aRow.selectedTemplate,
-                        customCss: aRow.customCss,
+                        selectedTemplate: aRow.selected_template,
+                        customCss: aRow.custom_css,
                         category: aRow.category,
-                        customArgs: aRow.customArgs
+                        customArgs: aRow.custom_args
                     });
                 });
                 return rows;

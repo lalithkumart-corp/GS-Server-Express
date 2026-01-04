@@ -201,7 +201,6 @@ export class GsuserCls {
     }
 
     async signupNewCustomer(custom, cb) {
-
         try{
             let user = await this._insertUser(custom);
             // await this._insertRoleMapping(user, 2);
@@ -274,7 +273,7 @@ export class GsuserCls {
         }
     }
     _insertUser(custom) {
-        return new Promise( (resolve, reject) => {
+        return new Promise( async (resolve, reject) => {
             let theParams = {
                 username: custom.userName,
                 ownerId: custom.ownerId || 0,
@@ -282,18 +281,11 @@ export class GsuserCls {
                 password: custom.password || DUMMY_PWD,
                 phone: custom.phone,
                 guardianName: custom.guardianName || '',
-                pwd: custom.password || DUMMY_PWD,
                 gateWay: custom.gateWay || 'direct',
                 ssoUserId: custom.ssoUserId || '',
             }
-            GsuserCls.create(theParams, (err, user) => {
-                if(err) {
-                    console.log(err);
-                    return reject(err);
-                } else {
-                    return resolve(user);
-                }
-            });
+            let res = await this.userService.signup(theParams);
+            return resolve(res);
         });
     };
 
@@ -316,19 +308,9 @@ export class GsuserCls {
         });
     }
 
-    _insertNewApplication(user) {
-        return new Promise((resolve, reject) => {
-            let shaCode = sha256(user.id.toString());
-            this.appManager.create({userId: user.id, status: 0, key: shaCode}, (err, res) => {
-                if(err) {
-                    console.log(err);
-                    return reject(err);
-                } else {
-                    console.log('INSERTED APPLICATION ROW');
-                    return resolve(true);
-                }
-            });
-        });
+    async _insertNewApplication(user) {
+        let shaCode = sha256(user.id.toString());
+        await this.appManager.insertNewApp({userId: user.id, status: 0, shaCode})
     }
 
     async _insertNewStore(apiParams, user) {

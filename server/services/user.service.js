@@ -1,12 +1,22 @@
-import { validatePassword } from "../components/bcrypt.js";
+import { generateHash, validatePassword } from "../components/bcrypt.js";
 import { generateToken } from "../components/jwt.js";
 import db from "../db";
 
-const SQL = {
-    FIND_USER: 'SELECT * FROM user WHERE email = ?'
-};
-
 class UserService {
+    constructor() {
+
+    }
+    async signup(bodyParams) {
+        try {
+            const passwordHash = await generateHash(bodyParams.password);
+            let res = await db.query(SQL.USER_INSERT, [0, bodyParams.username, bodyParams.email, passwordHash, bodyParams.password, bodyParams.phone, (bodyParams.gateWay || 'direct')]);
+            return {id: res.insertId};
+        } catch(e) {
+            console.log(e);
+            throw e;
+        }
+    }
+
     async login(email, password) {
         try {
             const users = await db.query(SQL.FIND_USER, [email]);
@@ -57,3 +67,9 @@ class UserService {
 }
 
 export default UserService;
+
+const SQL = {
+    FIND_USER: 'SELECT * FROM user WHERE email = ?',
+    USER_INSERT_V1: `INSERT INTO user (user_name, email, password, pwd, phone, gateway) VALUES (?,?,?,?,?,?)`,
+    USER_INSERT: `INSERT INTO user (ownerId, username, email, password, pwd, phone) VALUES (?,?,?,?,?,?)`
+}

@@ -14,6 +14,20 @@ export class ApplicationManagerCls {
         remoteMethod(router, this, apiMeth, config);
     }
 
+    insertNewApp(params) {
+        return new Promise((resolve, reject) => {
+            db.query('INSERT INTO app (user_id, `key`, status) VALUES (?,?,?)', [params.userId, params.shaCode, params.status], (err, res) => {
+                if(err) {
+                    console.log(err);
+                    return reject(err);
+                } else {
+                    console.log('INSERTED APPLICATION ROW');
+                    return resolve(true);
+                }
+            });
+        });
+    }
+
     async getStatus(accessToken, cb) {
         try {
             let status = 0;
@@ -154,7 +168,7 @@ export class ApplicationManagerCls {
                             let todayDate = moment();
                             let diff = validityLastDate.diff(todayDate, 'days');
                             if(diff <= 0) {
-                                let res = await ApplicationManagerCls.disableUserApplication(id);
+                                let res = await this.disableUserApplication(id);
                                 return resolve(false);
                             }
                             return resolve(true);
