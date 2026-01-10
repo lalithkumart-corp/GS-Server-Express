@@ -724,7 +724,7 @@ export class StockCls {
             if(params.filters.itemSubCategory)
                 filterList.push(`(orn_list_jewellery.item_subcategory like '${params.filters.itemSubCategory}%')`);
             if(params.filters.showReturnedItems==false)
-                filterList.push(`(STOCK_SOLD_TABLE.is_returned = 0`);
+                filterList.push(`(STOCK_SOLD_TABLE.is_returned = 0)`);
         }
         if(filterList.length)
             sql = ` WHERE ${filterList.join(' AND ')}`;
@@ -889,8 +889,12 @@ export class StockCls {
                 else
                     filterList.push(`orn_list_jewellery.metal NOT IN ('G', 'S')`);
             }
-            if(params.filters.prodId)
-                filterList.push(`STOCK_TABLE.prod_id like '${params.filters.prodId.replace('-','')}%'`);
+            if(params.filters.prodId) {
+                if(params.filters.filterMatchWord.prodId)
+                    filterList.push(`STOCK_TABLE.prod_id = '${params.filters.prodId.replace('-','')}'`);
+                else
+                    filterList.push(`STOCK_TABLE.prod_id like '${params.filters.prodId.replace('-','')}%'`);
+            }
             if(params.filters.huid)
                 filterList.push(`STOCK_TABLE.huid like '${params.filters.huid}%'`);
             if(params.filters.supplier)
@@ -1428,7 +1432,9 @@ let SQL = {
                                     ?,?,
                                     ?)`,
     FETCH_SOLD_OUT_ITEMS_COUNT: `SELECT
-                                    COUNT(*) AS Count
+                                    COUNT(*) AS Count,
+                                    SUM(net_wt) AS NetWt,
+                                    SUM(total) AS TotalAmount
                                 FROM
                                 STOCK_SOLD_TABLE
                                 LEFT JOIN JWL_INVOICE_TABLE ON STOCK_SOLD_TABLE.invoice_ref = JWL_INVOICE_TABLE.ukey

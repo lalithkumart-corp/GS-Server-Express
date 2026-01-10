@@ -2166,7 +2166,7 @@ let SQL = {
                                         FROM
                                             fund_transactions_REPLACE_USERID
                                                 LEFT JOIN
-                                            fund_transaction_categories ON fund_trns_tmp_REPLACE_USERID.category_id=fund_transaction_categories.id
+                                            fund_transaction_categories ON fund_transactions_REPLACE_USERID.category_id=fund_transaction_categories.id
                                         WHERE_CLAUSE
                                         GROUP BY
                                             category;`,

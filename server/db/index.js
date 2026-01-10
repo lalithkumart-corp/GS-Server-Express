@@ -11,7 +11,8 @@ const pool = mysql.createPool({
   database: dbconfig.DB_NAME,
   connectTimeout: dbconfig.DB_CONNECTION_TIMEOUT,
   waitForConnections: true,
-  debug: false
+  debug: false,
+  timezone: 'Z'
 });
 
 pool.on('connection', function (connection) {
