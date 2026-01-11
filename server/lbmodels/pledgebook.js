@@ -1055,7 +1055,7 @@ export class PledgebookCls {
             let csvStr = this._convertToCsvString(exportDataJSON);
             let fileLocation = utils.getCsvStorePath();
             let status = await this._writeCSVfile(exportDataJSON, fileLocation);
-            res.download(fileLocation, 'PledgebookCls.csv');
+            res.download(fileLocation, 'Pledgebook.csv');
 
             //let updatedResponse = PledgebookCls._setResponseHeaders(res);
             //updatedResponse.download(csvStr);                                        

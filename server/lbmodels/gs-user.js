@@ -15,6 +15,8 @@ let addUserParamValidation = require('../utils/validateUtil').addUserParamValida
 let utils = require('../utils/commonUtils');
 // let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
 // let logger = app.get('logger');
+import { appConfig as app } from '../config/index.js';
+
 let sha256 = require('sha256');
 
 const DUMMY_PWD = 'G1Rv1_S0fTwArE';

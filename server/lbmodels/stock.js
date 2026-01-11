@@ -883,7 +883,7 @@ export class StockCls {
                 let t1 = [];
                 _.each(params.filters.metalCategory, (aCateg, index) => {
                     t1.push(`orn_list_jewellery.metal = '${aCateg}'`);
-                })
+                });
                 if(t1.length)
                     filterList.push(`(${t1.join(' OR ')})`);
                 else
@@ -922,6 +922,35 @@ export class StockCls {
             sql += ` LIMIT ${limit} OFFSET ${params.filters.offsetStart}`;
         }
         return sql;
+    }
+
+    async exportAPIHandler(accessToken, params, res, cb) {
+        try {
+            let pledgebook = await this.getStockData(accessToken, params);
+            let exportDataJSON = this._constructExportDataJSON(pledgebook);
+            let csvStr = this._convertToCsvString(exportDataJSON);
+            let fileLocation = utils.getCsvStorePath();
+            let status = await this._writeCSVfile(exportDataJSON, fileLocation);
+            res.download(fileLocation, 'Stock.csv');
+        } catch(e) {
+            res.send({STATUS: 'error', ERROR: e});
+        }
+    }
+
+    getStockData() {
+        // TODO
+    }
+
+    _constructExportDataJSON() {
+        // TODO
+    }
+
+    _convertToCsvString() {
+        // TODO
+    }
+
+    _writeCSVfile() {
+        // TODO
     }
 
 }
@@ -1237,6 +1266,39 @@ Stock.remoteMethod('jewelleryBillingApiHandler', {
     },
     http: {path: '/sell-item', verb: 'post'},
     description: 'For testing purpose.',
+});
+
+Stock.remoteMethod('exportAPIHandler', {
+    accepts: [
+        {
+            arg: 'accessToken', type: 'string', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let accessToken;
+                if(req && req.headers.authorization)
+                    accessToken = req.headers.authorization;
+                return accessToken;
+            },
+            description: 'Arguments goes here',
+        },
+        {
+            arg: 'params', type: 'object', http: (ctx) => {
+                let req = ctx && ctx.req;
+                let params = req && req.query.params;
+                params = params ? JSON.parse(params) : {};
+                return params;
+            },
+            description: 'Arguments goes here',
+        }, {
+            arg: 'res', type: 'object', 'http': {source: 'res'}
+        }
+    ],
+    isStatic: true,
+    returns: [
+        {arg: 'body', type: 'file', root: true},
+        {arg: 'Content-Type', type: 'string', http: { target: 'header' }}
+        ],
+    http: {path: '/export-stock', verb: 'get'},
+    description: 'For exporting the stock'
 });
 
 let SQL = {
