@@ -122,13 +122,13 @@ export const getPictureUploadPath = () => {
     return path;
 }
 
-export const getCsvStorePath = () => {
+export const clientExportFileTempPath = () => {
     let csvPath;
     try {
         if(process.env.NODE_ENV == 'offlineprod')
-            csvPath = path.join(process.cwd(), appConfig.get('clientCsvFolderPath'));
+            csvPath = path.join(process.cwd(), appConfig.get('clientExportFileTempPath'));
         else
-            csvPath = path.join(__dirname, appConfig.get('clientCsvFolderPath'));
+            csvPath = path.join(__dirname, appConfig.get('clientExportFileTempPath'));
         // console.log(`getCsvStorePath -  process.env.NODE_ENV: ${process.env.NODE_ENV}, process.cwd(): ${process.cwd()}, __dirname: ${__dirname}, path: ${csvPath}`);
     } catch(e) {
         console.error(e);
@@ -160,7 +160,6 @@ export const constructImageUrl = (path) => {
 export const constructConsoleLogFolder = () => {
     let consoleLogFolder;
     try {
-        console.log(appConfig.get('consoleLogFolder'), appConfig.get('clientCsvFolderPath'));
         if(process.env.NODE_ENV == 'offlineprod')
             consoleLogFolder = process.cwd() + appConfig.get('consoleLogFolder');
         else

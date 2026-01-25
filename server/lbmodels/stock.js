@@ -20,6 +20,9 @@ import { JewelleryOrnamentCls } from './jewellery-ornament.js';
 import { ProductCodeCls } from './product-code.js';
 import { TouchCls } from './touch.js';
 import { SupplierCls } from './supplier.js';
+// const ExcelJS = require('exceljs');
+import ExcelJS from 'exceljs';
+
 const router = express.Router();
 export default router;
 
@@ -924,33 +927,111 @@ export class StockCls {
         return sql;
     }
 
+    constructQueryForDataExport(anItemCategRow, params) {
+        let sql = SQL.STOCK_DATA_FOR_EXPORT;
+        let whereCondition = `where 
+            orn_list_jewellery.metal = '${anItemCategRow.metal}'
+            AND orn_list_jewellery.item_name='${anItemCategRow.item_name}'`;
+        
+        if(params.filters.date)
+            whereCondition += ` AND (STOCK_TABLE.date BETWEEN '${params.filters.date.startDate}' AND '${params.filters.date.endDate}')`;
+        if(params.filters.include === 'avl')
+            whereCondition += ` AND STOCK_TABLE.avl_qty > 0`;
+
+        sql = sql.replace('WHERE_CONDITION_PART', whereCondition);
+        sql = sql.replace(/STOCK_TABLE/g, `stock_${params._userId}`);
+        
+        return sql;
+    }
+
     async exportAPIHandler(accessToken, params, res, cb) {
         try {
-            let pledgebook = await this.getStockData(accessToken, params);
-            let exportDataJSON = this._constructExportDataJSON(pledgebook);
-            let csvStr = this._convertToCsvString(exportDataJSON);
-            let fileLocation = utils.getCsvStorePath();
-            let status = await this._writeCSVfile(exportDataJSON, fileLocation);
-            res.download(fileLocation, 'Stock.csv');
+            params._userId = await utils.getStoreOwnerUserId(accessToken);
+            let groupWiseStockData = await this.getStockData(params);
+            groupWiseStockData = groupWiseStockData.filter(aGroup => aGroup.length > 0);
+            let excelFile = this._prepareExcelFile(groupWiseStockData);
+            let fileLocation = utils.clientExportFileTempPath();
+            await this._writeCSVfile(excelFile, fileLocation);
+            res.download(fileLocation, 'Stock.xlsx');
         } catch(e) {
+            console.log(e);
             res.send({STATUS: 'error', ERROR: e});
         }
     }
 
-    getStockData() {
-        // TODO
+    async getStockData(params) {
+        const topLevelItemGroup = await db.query('SELECT DISTINCT metal, item_name from orn_list_jewellery where user_id=?', [params._userId]);
+        try {
+            const groupWiseStockData = await Promise.all(
+                topLevelItemGroup.map(async (anItemCategRow) => {
+                    try {
+                        let sqlQ = this.constructQueryForDataExport(anItemCategRow, params);
+                        return db.query(sqlQ);
+                    } catch(e) {
+                        console.log(e);
+                    }
+                })
+            );
+            return groupWiseStockData;
+        } catch(ex) {
+            console.log(ex);
+
+        }
+        
     }
 
-    _constructExportDataJSON() {
-        // TODO
+    _prepareExcelFile(groupWiseStockData) {
+        try {
+            const excelfile = new ExcelJS.Workbook();
+            _.each(groupWiseStockData, (aGroup, index) => {
+                const groupName = `${aGroup[0].metal} ${aGroup[0].itemName}`;
+                const sheet = excelfile.addWorksheet(groupName);
+
+                sheet.columns = [
+                    { header: 'S.No', key: 'sno', width: 10 },
+                    { header: 'ID', key: 'id', width: 10 },
+                    { header: 'Metal', key: 'metal', width: 10 },
+                    { header: 'ItemName', key: 'itemName', width: 30 },
+                    { header: 'ItemCategory', key: 'itemCategory', width: 30 },
+                    { header: 'ItemSubCategory', key: 'itemSubCategory', width: 30 },
+                    { header: 'TagId', key: 'tagId', width: 30 },
+                    { header: 'Supplier', key: 'supplier', width: 30 },
+                    { header: 'SupplierPersonName', key: 'supplierPersonName', width: 30 },
+                    { header: 'Purity', key: 'pTouchValue', width: 30 },
+                    { header: 'Avl Qty', key: 'avlQty', width: 30 },
+                    { header: 'Avl GWt', key: 'avlGWt', width: 30 },
+                ];
+
+                let totals = {count: 0, avlQty: 0, avlGwt: 0};
+                _.each(aGroup, (row, index) => {
+                    row.sno = index + 1;
+                    totals.count++;
+                    totals.avlQty += parseInt(row.avlQty);
+                    totals.avlGwt += parseFloat(row.avlGWt || 0);
+                });
+                
+                sheet.addRows(aGroup);
+
+                const lastRow = sheet.addRow([totals.count, '', '', '', '', '', '', '', '', '', totals.avlQty, totals.avlGwt.toFixed(3)]);
+
+                // Style the entire row as Bold
+                lastRow.eachCell((cell) => {
+                    cell.font = { bold: true };
+                    cell.border = { top: { style: 'thin' } }; // Add a line above the total
+                });
+            });
+
+            return excelfile;
+        } catch(e) {
+            console.log('Error in preparing excel file', e);
+            throw e;
+        }
     }
 
-    _convertToCsvString() {
-        // TODO
-    }
-
-    _writeCSVfile() {
-        // TODO
+    async _writeCSVfile(excelfile, fileLocation) {
+        // Write to file
+        await excelfile.xlsx.writeFile(fileLocation+'/Stock.xlsx');
+        console.log('Excel file created successfully!');
     }
 
 }
@@ -1273,10 +1354,8 @@ Stock.remoteMethod('exportAPIHandler', {
         {
             arg: 'accessToken', type: 'string', http: (ctx) => {
                 let req = ctx && ctx.req;
-                let accessToken;
-                if(req && req.headers.authorization)
-                    accessToken = req.headers.authorization;
-                return accessToken;
+                let access_token = req && req.query.access_token;
+                return access_token;
             },
             description: 'Arguments goes here',
         },
@@ -1593,4 +1672,28 @@ let SQL = {
     MARK_IS_RETURNED_SOLD_STOCK_TABLE_ITEM: `UPDATE STOCK_SOLD_TABLE SET is_returned=1 where invoice_ref=?`,
     MARK_ARCHIVED_OLD_ORN_TABLE_ITEM: `UPDATE OLD_ITEMS_STOCK_TABLE SET archived=1 where invoice_ref=?`,
     MARK_IS_RETURNED_OLD_ORN_TABLE_ITEM: `UPDATE OLD_ITEMS_STOCK_TABLE SET is_returned=1 where invoice_ref=?`,
+    STOCK_DATA_FOR_EXPORT: `select 
+                STOCK_TABLE.id AS id,
+                orn_list_jewellery.metal AS metal,
+                orn_list_jewellery.item_name AS itemName,
+                orn_list_jewellery.item_category AS itemCategory,
+                orn_list_jewellery.item_subcategory AS itemSubCategory,
+                STOCK_TABLE.pr_code AS itemCode,
+                STOCK_TABLE.pr_number AS itemCodeNumber,
+                CONCAT(stock_1.pr_code, stock_1.pr_number) as tagId,
+                STOCK_TABLE.huid AS itemHUID,
+                suppliers.name AS supplier,
+                STOCK_TABLE.personName AS supplierPersonName,
+                touch.purity AS pTouchValue,
+                STOCK_TABLE.avl_qty AS avlQty,
+                STOCK_TABLE.avl_g_wt AS avlGWt,
+                STOCK_TABLE.avl_n_wt AS avlNWt,
+                STOCK_TABLE.avl_p_wt AS avlPWt
+            FROM
+                STOCK_TABLE
+                LEFT JOIN orn_list_jewellery ON STOCK_TABLE.ornament = orn_list_jewellery.id
+                LEFT JOIN suppliers ON STOCK_TABLE.supplierId = suppliers.id
+                LEFT JOIN touch ON STOCK_TABLE.touch_id = touch.id
+            WHERE_CONDITION_PART
+            order by 1,2,3,4,5,6,7`
 }

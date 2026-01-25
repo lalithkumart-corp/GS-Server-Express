@@ -1437,7 +1437,8 @@ export class FundTransactionCls {
             params._userId = await utils.getStoreOwnerUserId(accessToken);
             let {rows} = await this.fetchRecordsWithHelpOfProcedure(params);
             rows = this.parseRecordsObtainedFromDB(rows);
-            let fileLocation = utils.getCsvStorePath();
+            let fileLocation = utils.clientExportFileTempPath();
+            fileLocation = `${fileLocation}/file.csv`;
             let status = await this._writeCSVfile(rows, fileLocation);
             res.download(fileLocation, 'Fund Transactions.csv');
         } catch(e) {
