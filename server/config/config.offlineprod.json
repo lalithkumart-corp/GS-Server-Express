@@ -1,0 +1,36 @@
+{
+    "restApiRoot": "/api",
+    "domain": "localhost",
+    "externalDomain": "localhost",
+    "host": "0.0.0.0",
+    "protocol": "http",
+    "externalProtocol": "http",
+    "port": 3003,
+    "externalPort": 3003,
+    "remoting": {
+      "context": false,
+      "rest": {
+        "handleErrors": false,
+        "normalizeHttpPath": false,
+        "xml": false
+      },
+      "json": {
+        "strict": false,
+        "limit": "100kb"
+      },
+      "urlencoded": {
+        "extended": true,
+        "limit": "100kb"
+      },
+      "cors": false
+    },
+    "pledgebookTableName": "pledgebook",
+    "pledgebookClosedBillListTableName": "pledgebook_closed_bills",
+    "clientUploadsPath": "/client/uploads/",
+    "unused_clientCsvFolderPath": "client/csvfiles/file.csv",
+    "clientExportFileTempPath": "../../client/csvfiles/",
+    "csProductUUID": "4C4C4544-0038-3710-8053-B6C04F444332",
+    "appkey": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce",
+    "consoleLogFolder": "/server/logs/"
+  }
+  

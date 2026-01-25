@@ -1,24 +1,31 @@
-import { generateHash, validatePassword } from "../components/bcrypt.js";
+import { validatePassword } from "../components/bcrypt.js";
 import { generateToken } from "../components/jwt.js";
 import db from "../db";
+import UserService from "../services/user.service.js";
 
-export const loginUser = async (req, res, next) => {
-    let dbRes = await db.query(SQL.FIND_USER, [req.body.useremail]);
-    let token;
-    if(dbRes.length > 0) {
-        let userRow = dbRes[0];
-        if(validatePassword(req.body.password, userRow.password)) {
-            token = generateToken({id: userRow.id, userName: userRow.user_name, userEmail: userRow.user_email});
-            res.send(200, {token, userId: userRow.id});
-        } else {
-            res.send(401, 'Password did not match');
+export const loginUser = async (req, res) => {
+    try {
+        const userService = new UserService();
+        const result = await userService.login(req.body.email, req.body.password);
+
+        if (result.status === 404) {
+            return res.status(404).json({
+                message: "User not found."
+            });
         }
-        
-    } else {
-        res.send(500, 'Email did not match');
+
+        if (result.status === 401) {
+            return res.status(401).json({
+                message: "Invalid Password!"
+            });
+        }
+
+        res.status(200).json(result.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: error.message || "Error occurred while signing in."
+        });
     }
 };
 
-const SQL = {
-    FIND_USER: 'SELECT * FROM user where email=?'
-}

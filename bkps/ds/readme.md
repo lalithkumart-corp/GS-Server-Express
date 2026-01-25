@@ -1,0 +1,1 @@
+This folder is to keep the daily database backups

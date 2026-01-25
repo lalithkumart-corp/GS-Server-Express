@@ -4,22 +4,42 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "start": "npm-run-all clean transpile server",
-    "server": "node ./dist-server/bin/www",
-    "transpile": "babel ./server --out-dir dist-server",
+    "start_2": "npm run build_2 && node dist/server.bundle.js",
+    "build_2": "rimraf dist && node build-tool2.js && npm run copy-config_2",
+    "copy-config_2": "cpx \"server/config/*.json\" dist/",
+    "start": "npm-run-all build server",
+    "build": "npm-run-all clean transpile copy-config",
     "clean": "rimraf dist-server",
-    "build": "npm-run-all clean transpile"
+    "transpile": "node build-tool.js",
+    "copy-config": "cpx \"server/config/*.json\" dist-server/config",
+    "server": "node ./dist-server/bin/www",
+    "start_development_mode": "npx babel ./server --out-dir dist-server && nodemon ./dist-server/bin/www",
+    "start_v0": "npm-run-all clean transpile copy-config server",
+    "vs_debug_build": "npm-run-all clean transpile_v0 copy-config",
+    "transpile_v0": "babel ./server --out-dir dist-server"
   },
   "dependencies": {
+    "app-root-path": "^3.1.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "csv-writer": "^1.6.0",
+    "dateformat": "^5.0.3",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "~4.16.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "~1.9.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.12.0",
+    "node-cron": "^4.2.1",
     "npm-run-all": "^4.1.5",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "sha256": "^0.2.0",
+    "shorthash": "^0.0.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "babel": {
     "presets": [
@@ -32,7 +52,23 @@
     "@babel/cli": "^7.26.4",
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "cpx": "^1.5.0",
+    "esbuild": "0.27.2",
     "nodemon": "^3.1.9",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "terser": "^5.44.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "bin": "dist/server.bundle.js",
+  "pkg": {
+    "assets": [
+      "dist/config.*.json"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
   }
 }

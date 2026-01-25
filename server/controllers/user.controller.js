@@ -1,10 +1,8 @@
-import { generateHash } from '../components/bcrypt.js';
-import db from '../db/index.js';
+import UserService from '../services/user.service.js';
 
 export const signup = async (req, res, next) => {
     try {
-        const paswordHash = await generateHash(req.body.password);
-        let dbRes = await db.query(SQL.USER_INSERT, [req.body.username, req.body.useremail, paswordHash, req.body.password, req.body.phone]);
+        await new UserService().signup(req.body);
         res.send(200);
     } catch(e) {
         console.log(e);
@@ -13,5 +11,6 @@ export const signup = async (req, res, next) => {
 }
 
 const SQL = {
-    USER_INSERT: `INSERT INTO user (user_name, email, password, password_original, mobile) VALUES (?,?,?,?,?)`
+    USER_INSERT_V1: `INSERT INTO user (user_name, email, password, password_original, mobile) VALUES (?,?,?,?,?)`,
+    USER_INSERT: `INSERT INTO user (ownerId, username, email, password, pwd, phone) VALUES (?,?,?,?,?,?)`
 }

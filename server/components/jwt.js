@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { appConfig } from '../../dist-server/config';
+import { appConfig } from '../config';
 
 export const generateToken = (data) => {
     return jwt.sign(data, appConfig.tokenSecretKey);
