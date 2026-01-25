@@ -13,7 +13,7 @@
     "transpile": "node build-tool.js",
     "copy-config": "cpx \"server/config/*.json\" dist-server/config",
     "server": "node ./dist-server/bin/www",
-    "start_development_mode": "npx babel ./server --out-dir dist-server && nodemon ./dist-server/bin/www",
+    "start_development_mode": "npx babel ./server --out-dir dist-server && npm run copy-config && nodemon ./dist-server/bin/www",
     "start_v0": "npm-run-all clean transpile copy-config server",
     "vs_debug_build": "npm-run-all clean transpile_v0 copy-config",
     "transpile_v0": "babel ./server --out-dir dist-server"
@@ -38,6 +38,7 @@
     "sequelize": "^6.37.5",
     "sha256": "^0.2.0",
     "shorthash": "^0.0.2",
+    "socket.io": "^4.8.3",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.5"
   },
@@ -55,6 +56,7 @@
     "cpx": "^1.5.0",
     "esbuild": "0.27.2",
     "nodemon": "^3.1.9",
+    "pkg": "^5.8.1",
     "rimraf": "^6.0.1",
     "terser": "^5.44.1"
   },
@@ -65,7 +67,8 @@
   "bin": "dist/server.bundle.js",
   "pkg": {
     "assets": [
-      "dist/config.*.json"
+      "dist/config.*.json",
+      "node_modules/**"
     ],
     "targets": [
       "node18-win-x64"

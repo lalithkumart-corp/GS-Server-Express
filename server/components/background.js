@@ -1,6 +1,6 @@
 let app = require('../server');
-let GsErrorCtrl = require('../components/logger/gsErrorCtrl');
-import logger from "../components/logger/logger";
+let GsErrorCtrl = require('./logger/gsErrorCtrl.js');
+import logger from "./logger/logger.js";
 const { default: axios } = require('axios');
 
 import db from '../db/index.js';

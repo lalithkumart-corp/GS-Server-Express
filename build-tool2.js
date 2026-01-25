@@ -1,6 +1,6 @@
-import * as esbuild from 'esbuild';
+const esbuild = require('esbuild');
 
-await esbuild.build({
+esbuild.build({
   entryPoints: ['./server/bin/www.js'],
   bundle: true,
   minify: true,
