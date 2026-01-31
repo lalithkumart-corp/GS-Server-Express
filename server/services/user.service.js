@@ -1,7 +1,7 @@
 import { generateHash, validatePassword } from "../components/bcrypt.js";
 import { generateToken } from "../components/jwt.js";
 import db from "../db";
-
+import logger from "../components/logger/logger.js";
 class UserService {
     constructor() {
 
@@ -20,8 +20,12 @@ class UserService {
     async login(email, password) {
         try {
             const users = await db.query(SQL.FIND_USER, [email]);
-            
+        
+
             if (users.length === 0) {
+                logger.info({
+                message: "User record not found for email id: " + email
+            });
                 return {
                     status: 404,
                     message: "User not found."
@@ -29,9 +33,16 @@ class UserService {
             }
 
             const user = users[0];
+            logger.info({
+                message: "User record found for email id.: " + email,
+                user: user
+            });
             const passwordIsValid = validatePassword(password, user.password);
 
             if (!passwordIsValid) {
+                logger.info({
+                    message: "Password is invalid",
+                });
                 return {
                     status: 401,
                     message: "Invalid Password!"
@@ -46,7 +57,7 @@ class UserService {
 
             // insert into acccesstoken table
             // await db.query(`INSERT INTO accesstoken ('id', 'user_id') VALUES (${token}, ${user.id})`);
-
+            
             return {
                 status: 200,
                 data: {

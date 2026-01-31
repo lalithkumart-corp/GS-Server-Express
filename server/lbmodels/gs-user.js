@@ -54,6 +54,9 @@ export class GsuserCls {
         try {
             // session = await GsuserCls._invokeBuiltInLogin({email: apiParams.email, password: apiParams.password||DUMMY_PWD});
             session = await this.userService.login(apiParams.email, apiParams.password || DUMMY_PWD);
+            if(session.status != 200)
+                throw session.message;
+            
             session = session.data;
             let userTblRow = await Gsuser._find(session.userId);
 
@@ -155,7 +158,8 @@ export class GsuserCls {
             //         return resolve(true);
             //     }
             // });
-            this.storeLogoutActionDB({status: true, accessToken});
+            this.storeLogoutActionDB({status: true, accessToken}); 
+            return resolve(null);
         });
     }
 
