@@ -38,20 +38,8 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'client/uploads'), {
   }
 }));
 
-/*
-let rr = new Date();
-// let password = app.get('csProductUUID') + app.get('encpwd') + rr.getFullYear()+rr.getMonth()+rr.getHours();
-let password = `4C4C4544-0053-5010-8056-B5C04F465332A(*&nlk)[._` + rr.getFullYear()+rr.getMonth()+rr.getHours();
-let encted = encrypt(JSON.stringify({expiryDate: '2026-12-18 00:00:00'}), password);
-console.log(password)
-console.log(encted);
 
 
-let decrypted = decrypt(encted, password);
-console.log(decrypted);
-*/
-
-
-consoleLogHandler();
+// consoleLogHandler();
 
 export default app;

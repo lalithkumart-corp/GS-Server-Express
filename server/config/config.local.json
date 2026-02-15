@@ -32,5 +32,6 @@
     "clientUploadsPath": "client/uploads/",
     "unused_clientCsvFolderPath": "../../client/csvfiles/file.csv",
     "clientExportFileTempPath": "client/csvfiles/",
-    "consoleLogFolder": "/../../server/logs/"
+    "consoleLogFolder": "/../../server/logs/",
+    "encpwd": "A(*&nlk)[._"
 }

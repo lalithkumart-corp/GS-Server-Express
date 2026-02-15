@@ -1,6 +1,6 @@
 import express from 'express';
 import { generateHash } from '../components/bcrypt';
-import { getStoreOwnerUserId } from '../utils/commonUtils';
+import { decrypt, encrypt, getStoreOwnerUserId } from '../utils/commonUtils';
 
 const router = express.Router();
 
@@ -25,5 +25,22 @@ router.get('/user-id-by-token', async (req, res) => {
     }
 });
 
+/*
+router.get('/generate-key', (req, res) => {
+    let rr = new Date();
+    let password = app.get('csProductUUID') + app.get('encpwd') + rr.getFullYear()+rr.getMonth()+rr.getHours();
+    // let csProductUUID = '98F03E8C-2A47-11EC-810D-7C8AE1A7A26F';
+    // let encPwd = 'A(*&nlk)[._';
+    // let period = rr.getFullYear()+rr.getMonth()+rr.getHours();
+    // let password = csProductUUID + encPwd + period;
+    let encted = encrypt(JSON.stringify({expiryDate: '2026-12-18 00:00:00'}), password);
+    console.log(password)
+    console.log(encted);
+
+
+    let decrypted = decrypt(encted, password);
+    console.log(decrypted);
+});
+*/
 
 export default router;

@@ -75,6 +75,7 @@ let SQL = {
                             templates.parameters_json,
                             settings.selected_tag_template_id,
                             settings.store_name_abbr,
+                            settings.store_name_full,
                             settings.customization
                         FROM
                             jewellery_tag_avl_template_list templates 

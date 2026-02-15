@@ -31,8 +31,9 @@
     "clientUploadsPath": "/client/uploads/",
     "unused_clientCsvFolderPath": "client/csvfiles/file.csv",
     "clientExportFileTempPath": "client/csvfiles/",
-    "csProductUUID": "98F03E8C-2A47-11EC-810D-7C8AE1A7A26F",
-    "appkey": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce",
-    "consoleLogFolder": "/server/logs/"
+    "csProductUUID": "03FF0210-04E0-0501-0706-950700080009",
+    "appkey": "abcdefgh",
+    "consoleLogFolder": "/server/logs/",
+    "encpwd": "A(*&nlk)[._"
   }
   

@@ -8,7 +8,7 @@ import db from '../db/index.js';
 const { remoteMethod } = require('../routes/remoteMethod.js');
 import { Common } from './common.js';
 const router = express.Router();
-
+import { appConfig as app } from "../config/index.js";
 export class ApplicationManagerCls {
     remoteMethod(apiMeth, config) {
         remoteMethod(router, this, apiMeth, config);
