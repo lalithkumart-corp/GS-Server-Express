@@ -15,7 +15,8 @@ async function build() {
   for (const file of files) {
     const code = fs.readFileSync(file, 'utf8');
     const minified = await minify(code, {
-      compress: { drop_console: true }, // Removes console.logs for production
+      // compress: { drop_console: true }, // Removes console.logs for production
+      compress: { drop_debugger: true },
       mangle: true,
       toplevel: true
     });
