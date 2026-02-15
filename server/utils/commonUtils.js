@@ -111,10 +111,10 @@ export const getAppStatus = (ownerUserId) => {
 export const getPictureUploadPath = () => {
     let picUploadPath;
     try {
-        console.log('process.env.NODE_ENV: ' + process.env.NODE_ENV);
-        console.log('process.cwd(): ' + process.cwd()); // process.cwd(): D:\workspace\gs\gs-server-express
-        console.log('__dirname: ' + __dirname); // __dirname: D:\workspace\gs\gs-server-express\dist
-        console.log('appConfig.get(\'clientExportFileTempPath\'): ' + appConfig.get('clientExportFileTempPath'));
+        // console.log('process.env.NODE_ENV: ' + process.env.NODE_ENV);
+        // console.log('process.cwd(): ' + process.cwd()); // process.cwd(): D:\workspace\gs\gs-server-express
+        // console.log('__dirname: ' + __dirname); // __dirname: D:\workspace\gs\gs-server-express\dist
+        // console.log('appConfig.get(\'clientExportFileTempPath\'): ' + appConfig.get('clientExportFileTempPath'));
         if(process.env.NODE_ENV == 'offlineprod')
             picUploadPath = path.join(process.cwd(),appConfig.get('clientUploadsPath'));
         else
@@ -123,16 +123,17 @@ export const getPictureUploadPath = () => {
     } catch(e) {
         console.error(e);
     }
+    // console.log('picUploadPath:', picUploadPath);
     return picUploadPath;
 }
 
 export const clientExportFileTempPath = () => {
     let csvPath;
     try {
-        console.log('process.env.NODE_ENV: ' + process.env.NODE_ENV);
-        console.log('process.cwd(): ' + process.cwd()); // process.cwd(): D:\workspace\gs\gs-server-express
-        console.log('__dirname: ' + __dirname); // __dirname: D:\workspace\gs\gs-server-express\dist
-        console.log('appConfig.get(\'clientExportFileTempPath\'): ' + appConfig.get('clientExportFileTempPath'));
+        // console.log('process.env.NODE_ENV: ' + process.env.NODE_ENV);
+        // console.log('process.cwd(): ' + process.cwd()); // process.cwd(): D:\workspace\gs\gs-server-express
+        // console.log('__dirname: ' + __dirname); // __dirname: D:\workspace\gs\gs-server-express\dist
+        // console.log('appConfig.get(\'clientExportFileTempPath\'): ' + appConfig.get('clientExportFileTempPath'));
         if(process.env.NODE_ENV == 'offlineprod')
             csvPath = path.join(process.cwd(), appConfig.get('clientExportFileTempPath'));
         else
@@ -150,11 +151,11 @@ export const constructImageUrl = (path) => {
         try {
             url = `${appConfig.get('externalProtocol')}://${appConfig.get('externalDomain')}`;
             if(process.env.NODE_ENV == 'development' || process.env.NODE_ENV == 'local')
-                url += `:${appConfig.get('externalPort')}${path.substring(path.indexOf('/uploads'), path.length)}`;
+                url += `:${appConfig.get('externalPort')}/${path.substring(path.indexOf('uploads'), path.length)}`;
             else if(process.env.NODE_ENV == 'offlineprod')
-                url += `:${appConfig.get('externalPort')}${path.substring(path.indexOf('/uploads'), path.length)}`;
+                url += `:${appConfig.get('externalPort')}/${path.substring(path.indexOf('uploads'), path.length)}`;
             else
-                url += path.substring(path.indexOf('/client'), path.length);
+                url += `/${path.substring(path.indexOf('client'), path.length)}`;
             // console.log(`---- constructImageUrl-ForUI-Response- process.env.NODE_ENV: ${process.env.NODE_ENV}, externalProtocol: ${appConfig.get('externalProtocol')}, externalDomain: ${appConfig.get('externalDomain')}, pathDB: ${path}, url: ${url} `);
         } catch(e) {
             console.error(e);
