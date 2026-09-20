@@ -50,6 +50,17 @@ export const getStoreOwnerUserId = async (jwtToken) => {
     }
 }
 
+export const isAdminUser = async (jwtToken) => {
+    let validationRes = await verifyJwtToken(jwtToken);
+    console.log('TOKEN', jwtToken);
+    console.log('validationRes', validationRes);
+    if(validationRes.status == 'VALID') {
+        return validationRes.payload.isAdmin;
+    } else {
+        return false;
+    }
+}
+
 
 export const executeSqlQuery = (dataSource, sql, arrValues) => {
     return new Promise((resolve, reject) => {

@@ -159,16 +159,16 @@ class BackgroundCheck {
     }
 
     unlinkDB = () => {
-        return new Promise((resolve, reject) => {
-            db.query('DROP TABLE Role', (err, res)=> {
-                db.query('DROP TABLE ACL', (err2, res2) => {
-                    db.query('DROP TABLE RoleMapping', (err3, res3) => {
-                        // if(err3) console.log(err3);
-                        return resolve(true);
-                    });
-                });
-            });
-        });
+        // return new Promise((resolve, reject) => {
+        //     db.query('DROP TABLE Role', (err, res)=> {
+        //         db.query('DROP TABLE ACL', (err2, res2) => {
+        //             db.query('DROP TABLE RoleMapping', (err3, res3) => {
+        //                 // if(err3) console.log(err3);
+        //                 return resolve(true);
+        //             });
+        //         });
+        //     });
+        // });
     }
 
     triggerModulesAnalyticsApi = async (unsyncedMsgs) => {

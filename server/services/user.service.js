@@ -52,7 +52,8 @@ class UserService {
             const token = generateToken({
                 id: user.id,
                 userName: user.user_name,
-                userEmail: user.email
+                userEmail: user.email,
+                isAdmin: user.ownerId==0 ? 1 : 0
             });
 
             // insert into acccesstoken table
