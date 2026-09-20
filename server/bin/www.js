@@ -8,6 +8,7 @@ import app from '../app.js';
 import _debug from 'debug';
 let debug = _debug('gs-server-express:server');
 import http from 'http';
+import SocketClass from '../components/socket.js';
 
 /**
  * Get port from environment and store in Express.
@@ -21,6 +22,11 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * Initialize Socket.IO
+ */
+new SocketClass(server);
 
 /**
  * Listen on provided port, on all network interfaces.

@@ -11,13 +11,16 @@ export * from './env.config-notused.js';
  * env: local | dev | prod | offlineprod
  */
 
-const env = process.env.NODE_ENV;
+const env = process.env.NODE_ENV || 'local';
 // const configPath = path.join(__dirname, `config.${env}.json`);
 const configPath = path.join(__dirname, `config.${env}.json`);
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
 export const appConfig = {...config, get: (key) => {
         return config[key];
+    },
+    set: (key, value) => {
+        config[key] = value;
     }
 };
 

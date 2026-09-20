@@ -951,8 +951,9 @@ export class StockCls {
             groupWiseStockData = groupWiseStockData.filter(aGroup => aGroup.length > 0);
             let excelFile = this._prepareExcelFile(groupWiseStockData);
             let fileLocation = utils.clientExportFileTempPath();
+            fileLocation = `${fileLocation}/Stock.xls`;
             await this._writeCSVfile(excelFile, fileLocation);
-            res.download(fileLocation, 'Stock.xlsx');
+            res.download(fileLocation, 'Stock.xls');
         } catch(e) {
             console.log(e);
             res.send({STATUS: 'error', ERROR: e});
@@ -1030,7 +1031,7 @@ export class StockCls {
 
     async _writeCSVfile(excelfile, fileLocation) {
         // Write to file
-        await excelfile.xlsx.writeFile(fileLocation+'/Stock.xlsx');
+        await excelfile.xlsx.writeFile(fileLocation);
         console.log('Excel file created successfully!');
     }
 
@@ -1680,7 +1681,7 @@ let SQL = {
                 orn_list_jewellery.item_subcategory AS itemSubCategory,
                 STOCK_TABLE.pr_code AS itemCode,
                 STOCK_TABLE.pr_number AS itemCodeNumber,
-                CONCAT(stock_1.pr_code, stock_1.pr_number) as tagId,
+                CONCAT(STOCK_TABLE.pr_code, STOCK_TABLE.pr_number) as tagId,
                 STOCK_TABLE.huid AS itemHUID,
                 suppliers.name AS supplier,
                 STOCK_TABLE.personName AS supplierPersonName,

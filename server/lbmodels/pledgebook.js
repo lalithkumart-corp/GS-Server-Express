@@ -1566,6 +1566,7 @@ export class PledgebookCls {
         let params = {
             uniqueIdentifier: newBillParams.uniqueIdentifier,
             billNo: newBillParams.billNo,
+            billSeries: newBillParams.billSeries,
             billNoWithSeries: billNoWithSeries,
             amount: newBillParams.amount,
             presentValue: newBillParams.amount+100, //existingBillFromDB.PresentValue,

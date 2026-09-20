@@ -5,6 +5,6 @@ export const dbconfig = {
     DB_PORT: 3306,
     DB_USER: 'root',
     DB_PWD: 'admin123',
-    DB_NAME: 'gsdev',
+    DB_NAME: 'gsprod',
     DB_CONNECTION_TIMEOUT: 10000
 }
